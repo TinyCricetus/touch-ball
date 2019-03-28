@@ -1,0 +1,13 @@
+
+
+export const BRICKSIZE: number = 64;
+
+export const enum BRICKTYPE {
+    EMPTY,
+    UNBREAKABLE,
+    SQUARE,
+    TRIANGLE_LEFT_TOP,
+    TRIANGLE_LEFT_BOTTOM,
+    TRIANGLE_RIGHT_TOP,
+    TRIANGLE_RIGHT_BOTTOM
+}
