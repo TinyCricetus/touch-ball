@@ -33,7 +33,6 @@ export class BrickConfig extends cc.Component {
                     self.spriteFrameArray[i][j] = sa.getSpriteFrame(self.brickType[i][j]);
                 }
             }
-
             self.loadPlayGround();
         });
     }

@@ -29,8 +29,8 @@ export enum SIDE {
  * 反射点信息类
  */
 export class Reflect {
-    public reflectSide: SIDE = null;
-    public position: cc.Vec2 = null;
+    public reflectSide: SIDE = null;//用于记录反射边
+    public position: cc.Vec2 = null;//用于记录反射坐标点
     public constructor(pos: cc.Vec2, ref: SIDE) {
         this.reflectSide = ref;
         this.position = pos;
@@ -104,7 +104,6 @@ export class GameBoard {
                 }
             }
         }
-
         cc.log("没有焦点!");
         return null;
     }
@@ -122,7 +121,11 @@ export class GameBoard {
                 if (bsa.type != BRICKTYPE.EMPTY) {
                     //第一次生成的节点应该采用颜色最深的纹理(0-10)
                     let temp: cc.Node = brickNodePool.getBrickNode(bsa.type);
-                    temp.getComponent(cc.Sprite).spriteFrame = brickConfig.getBlockSpriteFrame(bsa.type, 5);
+
+                    //从这里插入生命值设定
+                    temp.getComponent("Brick").init(50, 10, bsa.type);
+
+                    temp.getComponent(cc.Sprite).spriteFrame = brickConfig.getBlockSpriteFrame(bsa.type, 10);
                     temp.position = bsa.position;
                     brickNodeArray.push(temp);
                 }
@@ -142,7 +145,7 @@ export class GameBoard {
     }
 
     /**
-     *  计算弹道球位置信息，返回信息数组
+     *  计算弹道球位置信息，返回位置信息数组
      * */
     public figureBallOnLine(posA: cc.Vec2, posB: cc.Vec2): cc.Vec2[] {
         let sideA: number = posB.x - posA.x;

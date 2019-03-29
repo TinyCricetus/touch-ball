@@ -31,7 +31,7 @@ export class GameMap {
             [BRICKTYPE.SQUARE, BRICKTYPE.EMPTY,  BRICKTYPE.SQUARE],
             [0, 0, 0, 0, 0, BRICKTYPE.SQUARE, BRICKTYPE.SQUARE, BRICKTYPE.SQUARE],
             [],
-            [],
+            [BRICKTYPE.TRIANGLE_LEFT_TOP],
             [],
             [BRICKTYPE.SQUARE, BRICKTYPE.EMPTY, BRICKTYPE.TRIANGLE_LEFT_TOP],
             [],

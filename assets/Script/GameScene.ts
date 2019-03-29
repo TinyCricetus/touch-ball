@@ -1,6 +1,8 @@
 import { BrickNodePool, LineBallNodePool, BallNodePool } from "./NodePool";
 import { GameBoard, Reflect } from "./GameBoard";
 import { BrickConfig } from "./BrickConfig";
+import { BRICKTYPE } from "./BrickData";
+import { GameBasic } from "./GameBasic";
 
 
 const { ccclass, property } = cc._decorator;
@@ -64,7 +66,9 @@ export class GameScene extends cc.Component {
 
         //地图加载需要控制主场景的加载，不然还未加载完成便会出现使用的情况
         this.loadMap();
-        
+
+        //注册一个颜色事件试试
+        GameBasic.getInstance().registerEvent("color", this.changeColor, this);
     }
 
     public onDestroy() {
@@ -75,6 +79,15 @@ export class GameScene extends cc.Component {
     //坐标统一
     public positionUnify(pos: cc.Vec2): cc.Vec2 {
         return this.node.convertToNodeSpaceAR(pos);
+    }
+
+    public changeColor(str: string, node: cc.Node) {
+        console.log(node.getComponent("Brick").totalLifeValue);
+        let res: number = node.getComponent("Brick").ifChangeColor();
+        if (res != -1) {
+            let type: BRICKTYPE = node.getComponent("Brick").type;
+            node.getComponent(cc.Sprite).spriteFrame = this.brickConfig.getBlockSpriteFrame(type, res);
+        }
     }
 
     private loadMap() {
@@ -175,7 +188,7 @@ export class GameScene extends cc.Component {
         }
         this.lineBallNodeRecord.push(tail);
         if (posArray.length != this.lineBallNodeRecord.length - 1) {
-            cc.log("数量计算出现错误!");
+            cc.log("轨道球数量计算出现错误!");
         }
         for (let i = 0; i < posArray.length; i++) {
             this.lineBallNodeRecord[i].position = posArray[i];
@@ -197,7 +210,7 @@ export class GameScene extends cc.Component {
     /**
      * 发射小球
      * @param ball 需要发射的球
-     * @param dir 方向向量
+     * @param dir 方向反射类
      */
     private sendBall(ball: cc.Node, dir: Reflect) {
         let ballRB: cc.RigidBody = ball.getComponent(cc.RigidBody);
