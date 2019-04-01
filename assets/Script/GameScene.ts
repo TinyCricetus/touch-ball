@@ -3,6 +3,7 @@ import { GameBoard, Reflect } from "./GameBoard";
 import { BrickConfig } from "./BrickConfig";
 import { BRICKTYPE } from "./BrickData";
 import { GameBasic } from "./GameBasic";
+import { Brick } from "./Brick";
 
 
 const { ccclass, property } = cc._decorator;
@@ -81,12 +82,11 @@ export class GameScene extends cc.Component {
         return this.node.convertToNodeSpaceAR(pos);
     }
 
-    public changeColor(str: string, node: cc.Node) {
-        console.log(node.getComponent("Brick").totalLifeValue);
-        let res: number = node.getComponent("Brick").ifChangeColor();
+    public changeColor(str: string, brick: Brick) {
+        let res: number = brick.ifChangeColor();
         if (res != -1) {
-            let type: BRICKTYPE = node.getComponent("Brick").type;
-            node.getComponent(cc.Sprite).spriteFrame = this.brickConfig.getBlockSpriteFrame(type, res);
+            let type: BRICKTYPE = brick.type;
+            brick.node.getComponent(cc.Sprite).spriteFrame = this.brickConfig.getBlockSpriteFrame(type, res);
         }
     }
 

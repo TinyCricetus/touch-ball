@@ -123,7 +123,7 @@ export class GameBoard {
                     let temp: cc.Node = brickNodePool.getBrickNode(bsa.type);
 
                     //从这里插入生命值设定
-                    temp.getComponent("Brick").init(50, 10, bsa.type);
+                    temp.getComponent("Brick").init(5, 10, bsa.type);
 
                     temp.getComponent(cc.Sprite).spriteFrame = brickConfig.getBlockSpriteFrame(bsa.type, 10);
                     temp.position = bsa.position;
