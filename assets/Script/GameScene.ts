@@ -24,17 +24,25 @@ export class GameScene extends cc.Component {
     brickPrefabs: cc.Prefab[] = [];
     @property(cc.Node)
     bg: cc.Node = null;
+    @property(cc.Integer)
+    ballCount: number = 0;
+    @property(cc.Integer)
+    timeInterval: number = 0;
 
     public brickNodePool: BrickNodePool = null;
     public lineBallNodePool: LineBallNodePool = null;
     public ballNodePool: BallNodePool = null;
-    
+
     public brickConfig: BrickConfig = null;
 
     private brickRootNode: cc.Node = null;
     private gameBoard: GameBoard = null;
     private theForce: number = 0;
     private lineBallNodeRecord: cc.Node[] = null;
+    private ballNodeRecord: cc.Node[] = null;
+    private index: number = 0;
+    private frist: boolean = false;
+    private fristPosition: cc.Vec2 = null;
 
     public onLoad() {
         //开启物理引擎
@@ -54,11 +62,14 @@ export class GameScene extends cc.Component {
 
         //给与球的冲量大小
         this.theForce = 1000;
+        //用于记录轨迹
         this.lineBallNodeRecord = [];
+        //用于记录弹射球
+        this.ballNodeRecord = [];
 
         //获取砖块挂载的根节点，便于统一管理砖块
         this.brickRootNode = this.node.children[0];
-        
+
         //从加载完毕的背景中获取砖块配置器组件
         this.brickConfig = this.bg.getComponent("BrickConfig");
 
@@ -68,8 +79,19 @@ export class GameScene extends cc.Component {
         //地图加载需要控制主场景的加载，不然还未加载完成便会出现使用的情况
         this.loadMap();
 
+        //初始化弹射球
+        this.initBall();
+
+        this.index = 0;
+        this.frist = false;
+        this.fristPosition = cc.v2();
+
         //注册一个颜色事件试试
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
+    }
+
+    public update(dt) {
+        
     }
 
     public onDestroy() {
@@ -107,7 +129,13 @@ export class GameScene extends cc.Component {
 
     private onTouchEnd(event: cc.Event.EventTouch) {
         this.clearBall();
-        this.sendBall(this.ball, this.getReflectPos(event));
+        this.index = 0;
+        let reflect: Reflect = this.getReflectPos(event);
+        this.frist = true;
+        this.schedule(function () {
+            this.sendBall(this.ballNodeRecord[this.index++], reflect);
+            //console.log("目前是发射第"+ this.index + "个");
+        }.bind(this), this.timeInterval, this.ballNodeRecord.length - 1, 0);
     }
 
     private onTouchCancel(event: cc.Event.EventTouch) {
@@ -125,8 +153,18 @@ export class GameScene extends cc.Component {
     private onBeginContact(contact: cc.PhysicsContact, self: any, other: any) {
         if (self.tag == 4) {
             other.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, 0);
-        } else {
-            return ;
+            if (this.frist) {
+                other.tag = 1;
+                this.fristPosition = other.position;
+                this.frist = false;
+                console.log("Record Once!");
+            }
+            console.log(other.tag);
+            if (other.tag != 1) {
+                //不是第一个球就应该往第一个球的位置运动
+                other.node.runAction(cc.moveTo(this.timeInterval, this.fristPosition));
+                console.log("运动一次!");
+            }
         }
     }
 
@@ -162,16 +200,16 @@ export class GameScene extends cc.Component {
      */
     private moveLine(posA: cc.Vec2, posB: Reflect) {
         if (posA == null || posB == null) {
-            return ;
+            return;
         }
         let posArray: cc.Vec2[] = this.gameBoard.figureBallOnLine(posA, posB.position);
 
         //插入反射轨迹
         this.gameBoard.reflectDeal(posArray, posB);
-        
+
         //计算轨迹球增量(注意节点记录数组包含尾部反射点)
         let limit: number = posArray.length - (this.lineBallNodeRecord.length - 1);
-        
+
         let tail: cc.Node = this.lineBallNodeRecord.pop();
         if (limit > 0) {
             for (let i = 0; i < limit; i++) {
@@ -215,7 +253,29 @@ export class GameScene extends cc.Component {
     private sendBall(ball: cc.Node, dir: Reflect) {
         let ballRB: cc.RigidBody = ball.getComponent(cc.RigidBody);
         let force: cc.Vec2 = this.gameBoard.getUnitVec(dir.position.sub(ball.position));
-        ballRB.applyLinearImpulse(force.scale(cc.v2(this.theForce, this.theForce)), 
+        ballRB.applyLinearImpulse(force.scale(cc.v2(this.theForce, this.theForce)),
             ballRB.getLocalCenter(), true);
+    }
+
+    /**
+     * 初始化弹射球数量
+     */
+    private initBall() {
+        //先对弹射球的数据进行判断修正
+        if (this.ballCount <= 0) {
+            console.log("预制球数量错误，重新修正为1!");
+            this.ballCount = 1;
+        }
+        if (!this.ballNodeRecord) {
+            this.ballNodeRecord = [];
+        }
+        //先把第一个球也就是定位球加入
+        this.ballNodeRecord.push(this.ball);
+        for (let i: number = 1; i < this.ballCount; i++) {
+            let temp: cc.Node = this.ballNodePool.getBallNode();
+            this.node.addChild(temp);//先激活active
+            temp.position = this.ball.position;
+            this.ballNodeRecord.push(temp);
+        }
     }
 }

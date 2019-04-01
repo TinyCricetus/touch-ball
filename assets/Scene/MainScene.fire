@@ -274,7 +274,7 @@
     "_localZOrder": 0,
     "_globalZOrder": 0,
     "_opacityModifyRGB": false,
-    "groupIndex": 0
+    "groupIndex": 2
   },
   {
     "__type__": "cc.Node",
@@ -380,7 +380,7 @@
     "_localZOrder": 0,
     "_globalZOrder": 0,
     "_opacityModifyRGB": false,
-    "groupIndex": 0
+    "groupIndex": 1
   },
   {
     "__type__": "cc.Sprite",
@@ -490,7 +490,9 @@
     ],
     "bg": {
       "__id__": 3
-    }
+    },
+    "ballCount": 10,
+    "timeInterval": 0.2
   },
   {
     "__type__": "cc.Sprite",
