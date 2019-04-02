@@ -43,6 +43,7 @@ export class GameScene extends cc.Component {
     private index: number = 0;
     private frist: boolean = false;
     private fristPosition: cc.Vec2 = null;
+    private backBallRecord: any[] = null;
 
     public onLoad() {
         //开启物理引擎
@@ -66,6 +67,8 @@ export class GameScene extends cc.Component {
         this.lineBallNodeRecord = [];
         //用于记录弹射球
         this.ballNodeRecord = [];
+        //用于记录应该回归集结点的球
+        this.backBallRecord = [];
 
         //获取砖块挂载的根节点，便于统一管理砖块
         this.brickRootNode = this.node.children[0];
@@ -86,17 +89,15 @@ export class GameScene extends cc.Component {
         this.frist = false;
         this.fristPosition = cc.v2();
 
-        //注册一个颜色事件试试
+        //注册颜色事件
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
-    }
-
-    public update(dt) {
-        
     }
 
     public onDestroy() {
         this.node.off(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.off(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        this.node.off(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+        this.node.off(cc.Node.EventType.TOUCH_CANCEL, this.onTouchCancel, this);
     }
 
     //坐标统一
@@ -104,6 +105,11 @@ export class GameScene extends cc.Component {
         return this.node.convertToNodeSpaceAR(pos);
     }
 
+    /**
+     * 用于砖块的颜色变化回调
+     * @param str 
+     * @param brick 
+     */
     public changeColor(str: string, brick: Brick) {
         let res: number = brick.ifChangeColor();
         if (res != -1) {
@@ -150,21 +156,42 @@ export class GameScene extends cc.Component {
     }
 
     //落地时的回调函数
-    private onBeginContact(contact: cc.PhysicsContact, self: any, other: any) {
+    private onEndContact(contact: cc.PhysicsContact, self: any, other: any) {
         if (self.tag == 4) {
             other.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, 0);
             if (this.frist) {
                 other.tag = 1;
-                this.fristPosition = other.position;
+                this.fristPosition = other.node.position;
                 this.frist = false;
-                console.log("Record Once!");
             }
-            console.log(other.tag);
+            //console.log(other.tag);
             if (other.tag != 1) {
-                //不是第一个球就应该往第一个球的位置运动
-                other.node.runAction(cc.moveTo(this.timeInterval, this.fristPosition));
-                console.log("运动一次!");
+                //往第一个球的位置运动
+                //由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行约束
+                //other.node.runAction(cc.moveTo(this.timeInterval, this.fristPosition));
+                this.backBallRecord.push(other);
+                if (this.backBallRecord.length > 0) {
+                    //开始集结小球
+                    this.everyBallMoveToCenterPoint();
+                }
+            } else {
+                //清空首位标记，因为下一次首先落地的不一定是当前碰撞体
+                other.tag = 0;
             }
+        }
+    }
+
+    /**
+     * 小球集结动作
+     */
+    private everyBallMoveToCenterPoint() {
+        if (this.backBallRecord.length <= 0) {
+            return;
+        } else {
+            let action: cc.FiniteTimeAction = cc.moveTo(this.timeInterval, this.fristPosition);
+            let act: cc.ActionInterval = cc.sequence(action, cc.callFunc(this.everyBallMoveToCenterPoint, this));
+            let temp: any = this.backBallRecord.shift();
+            temp.node.runAction(act);
         }
     }
 

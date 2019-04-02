@@ -81,11 +81,6 @@ export class GameBoard {
 
         let sideArray: cc.Vec2[] = [pointA, pointB, pointC];
         //修改判断顺序可以优化弹道
-        // for (let i of sideArray) {
-        //     if (this.isContain(i)) {
-        //         return i;
-        //     }
-        // }
         for (let i: number = 0; i < sideArray.length; i++) {
             if (this.isContain(sideArray[i])) {
                 //补充反射轨迹
@@ -123,7 +118,7 @@ export class GameBoard {
                     let temp: cc.Node = brickNodePool.getBrickNode(bsa.type);
 
                     //从这里插入生命值设定
-                    temp.getComponent("Brick").init(5, 10, bsa.type);
+                    temp.getComponent("Brick").init(20, 10, bsa.type);
 
                     temp.getComponent(cc.Sprite).spriteFrame = brickConfig.getBlockSpriteFrame(bsa.type, 10);
                     temp.position = bsa.position;
@@ -162,7 +157,11 @@ export class GameBoard {
         return ballPosArray;
     }
 
-
+    /**
+     * 反射处理函数会直接对传入的数组进行操作并直接保存结果在当前数组中
+     * @param posArray 
+     * @param reflectPos 
+     */
     public reflectDeal(posArray: cc.Vec2[], reflectPos: Reflect) {
         let length: number = posArray.length;
         if (length < 2) {

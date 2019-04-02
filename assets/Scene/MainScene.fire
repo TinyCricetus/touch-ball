@@ -491,8 +491,8 @@
     "bg": {
       "__id__": 3
     },
-    "ballCount": 10,
-    "timeInterval": 0.2
+    "ballCount": 50,
+    "timeInterval": 0.1
   },
   {
     "__type__": "cc.Sprite",
