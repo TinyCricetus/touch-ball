@@ -1,4 +1,4 @@
-import { BRICKTYPE } from "./BrickData";
+import { BRICK_TYPE } from "./BrickData";
 
 /**
  * 定义三个结点池，
@@ -49,23 +49,23 @@ export class BrickNodePool {
      */
     public brickTypeToPrefabSerial(brickType: number): number {
         switch(brickType) {
-            case BRICKTYPE.SQUARE:
+            case BRICK_TYPE.SQUARE:
             return 0;
             break;
 
-            case BRICKTYPE.TRIANGLE_LEFT_BOTTOM:
+            case BRICK_TYPE.TRIANGLE_LEFT_BOTTOM:
             return 1;
             break;
 
-            case BRICKTYPE.TRIANGLE_LEFT_TOP:
+            case BRICK_TYPE.TRIANGLE_LEFT_TOP:
             return 4;
             break;
 
-            case BRICKTYPE.TRIANGLE_RIGHT_BOTTOM:
+            case BRICK_TYPE.TRIANGLE_RIGHT_BOTTOM:
             return 2;
             break;
 
-            case BRICKTYPE.TRIANGLE_RIGHT_TOP:
+            case BRICK_TYPE.TRIANGLE_RIGHT_TOP:
             return 3;
             break;
 

@@ -1,8 +1,8 @@
 import { GameScene } from "./GameScene";
 import { BrickNodePool } from "./NodePool";
-import { BRICKTYPE, BRICKSIZE } from "./BrickData";
+import { BRICK_TYPE, BRICK_SIZE, ORIGIN_COLOR } from "./BrickData";
 import { GameMap } from "./GameMap";
-import { BrickConfig } from "./BrickConfig";
+import { GameConfig, mapBrick } from "./GameConfig";
 
 /**
  * 砖块信息类
@@ -10,9 +10,11 @@ import { BrickConfig } from "./BrickConfig";
 class Brick {
     public type: number = 0;
     public position: cc.Vec2 = null;
+    public life: number = 0;
     public constructor() {
-        this.type = BRICKTYPE.EMPTY;
+        this.type = BRICK_TYPE.EMPTY;
         this.position = cc.v2(0, 0);
+        this.life = 10;
     }
 }
 
@@ -48,7 +50,7 @@ export class GameBoard {
     private brickStateArray: Brick[][] = null;
     private brickPosArray: cc.Vec2[][] = null;
 
-    private gameMap: GameMap = null;
+    //private gameMap: GameMap = null;
 
     private boardWidth: number = 0;
     private boardHeight: number = 0;
@@ -105,22 +107,26 @@ export class GameBoard {
 
     /**
      * 获取配置好的砖块节点
-     * @param brickConfig 砖块配置器
+     * @param gameConfig 砖块配置器
      * @param brickNodePool 砖块结点池
      */
-    public getBrickNodeArray(brickConfig: BrickConfig, brickNodePool: BrickNodePool): cc.Node[] {
+    public getBrickNodeArray(gameConfig: GameConfig, brickNodePool: BrickNodePool): cc.Node[] {
+
+        //先配置地图
+        this.configMap(gameConfig);
+
         let brickNodeArray: cc.Node[] = [];
         for (let i = 0; i < this.brickStateArray.length; i++) {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {
                 let bsa: Brick = this.brickStateArray[i][j];
-                if (bsa.type != BRICKTYPE.EMPTY) {
+                if (bsa.type != BRICK_TYPE.EMPTY) {
                     //第一次生成的节点应该采用颜色最深的纹理(0-10)
                     let temp: cc.Node = brickNodePool.getBrickNode(bsa.type);
 
                     //从这里插入生命值设定
-                    temp.getComponent("Brick").init(20, 10, bsa.type);
+                    temp.getComponent("Brick").init(bsa.life, ORIGIN_COLOR, bsa.type);
 
-                    temp.getComponent(cc.Sprite).spriteFrame = brickConfig.getBlockSpriteFrame(bsa.type, 10);
+                    temp.getComponent(cc.Sprite).spriteFrame = gameConfig.getBlockSpriteFrame(bsa.type, ORIGIN_COLOR);
                     temp.position = bsa.position;
                     brickNodeArray.push(temp);
                 }
@@ -201,8 +207,8 @@ export class GameBoard {
         this.initPosArray();
         this.initStateArray();
 
-        this.gameMap = new GameMap();
-        this.configMap();
+        //this.gameMap = new GameMap();
+        //this.configMap();
     }
 
     /**
@@ -214,7 +220,7 @@ export class GameBoard {
             for (let j = 0; j < this.boardWidth; j++) {
                 let temp: Brick = new Brick();
                 this.brickStateArray[i][j] = temp;
-                this.brickStateArray[i][j].type = BRICKTYPE.EMPTY;
+                this.brickStateArray[i][j].type = BRICK_TYPE.EMPTY;
             }
         }
         //将事先计算完成的砖块真实坐标赋值给砖块状态数组
@@ -235,14 +241,14 @@ export class GameBoard {
             }
         }
         //先初始化一行一列
-        this.brickPosArray[0][0] = cc.v2(BRICKSIZE / 2, BRICKSIZE / 2);
+        this.brickPosArray[0][0] = cc.v2(BRICK_SIZE / 2, BRICK_SIZE / 2);
         //初始化第一列，用于对齐
         for (let i = 1; i < this.boardHeight; i++) {
-            this.brickPosArray[i][0] = cc.v2(BRICKSIZE / 2 + this.correctValue, this.brickPosArray[i - 1][0].y + BRICKSIZE);
+            this.brickPosArray[i][0] = cc.v2(BRICK_SIZE / 2 + this.correctValue, this.brickPosArray[i - 1][0].y + BRICK_SIZE);
         }
         for (let i = 0; i < this.boardHeight; i++) {
             for (let j = 1; j < this.boardWidth; j++) {
-                this.brickPosArray[i][j] = cc.v2(this.brickPosArray[i][j - 1].x + BRICKSIZE,
+                this.brickPosArray[i][j] = cc.v2(this.brickPosArray[i][j - 1].x + BRICK_SIZE,
                     this.brickPosArray[i][j - 1].y);
             }
         }
@@ -257,15 +263,16 @@ export class GameBoard {
     /**
      * 配置地图
      */
-    private configMap() {
+    private configMap(gameConfig: GameConfig) {
         //获取地图
-        let maze: number[][] = this.gameMap.getGameMap(0);
+        let maze: mapBrick[][] = gameConfig.getGameMap(0);
         //length用于上下翻转地图，使得更加符合地图配置
         let length: number = this.brickStateArray.length;
         for (let i = 0; i < this.brickStateArray.length; i++) {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {
                 if (maze[i][j] != undefined) {
-                    this.brickStateArray[length - i - 1][j].type = maze[i][j];
+                    this.brickStateArray[length - i - 1][j].type = maze[i][j].type;
+                    this.brickStateArray[length - i - 1][j].life = maze[i][j].life;
                 }
             }
         }

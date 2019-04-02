@@ -1,8 +1,13 @@
 
 
-export const BRICKSIZE: number = 64;
+export const BRICK_SIZE: number = 64;
 
-export const enum BRICKTYPE {
+export const MAP_WIDTH: number = 11;
+export const MAP_HEIGHT: number = 20;
+
+export const ORIGIN_COLOR: number = 10;
+
+export const enum BRICK_TYPE {
     EMPTY,
     UNBREAKABLE,
     SQUARE,

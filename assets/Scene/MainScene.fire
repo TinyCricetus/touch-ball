@@ -491,8 +491,9 @@
     "bg": {
       "__id__": 3
     },
-    "ballCount": 50,
-    "timeInterval": 0.1
+    "ballCount": 20,
+    "timeInterval": 0.2,
+    "theForce": 650
   },
   {
     "__type__": "cc.Sprite",
@@ -558,12 +559,12 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": 461,
-      "y": -7
+      "y": 0
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 205,
-      "height": 1397
+      "width": 200,
+      "height": 1400
     }
   },
   {
@@ -583,7 +584,7 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": -505,
-      "y": -3
+      "y": 0
     },
     "_size": {
       "__type__": "cc.Size",
@@ -607,7 +608,7 @@
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 9,
+      "x": 0,
       "y": -777
     },
     "_size": {
@@ -632,7 +633,7 @@
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -33,
+      "x": 0,
       "y": 773
     },
     "_size": {

@@ -1,7 +1,7 @@
 import { BrickNodePool, LineBallNodePool, BallNodePool } from "./NodePool";
 import { GameBoard, Reflect } from "./GameBoard";
-import { BrickConfig } from "./BrickConfig";
-import { BRICKTYPE } from "./BrickData";
+import { GameConfig } from "./GameConfig";
+import { BRICK_TYPE } from "./BrickData";
 import { GameBasic } from "./GameBasic";
 import { Brick } from "./Brick";
 
@@ -28,16 +28,17 @@ export class GameScene extends cc.Component {
     ballCount: number = 0;
     @property(cc.Integer)
     timeInterval: number = 0;
+    @property(cc.Integer)
+    theForce: number = 0;
 
     public brickNodePool: BrickNodePool = null;
     public lineBallNodePool: LineBallNodePool = null;
     public ballNodePool: BallNodePool = null;
 
-    public brickConfig: BrickConfig = null;
+    public gameConfig: GameConfig = null;
 
     private brickRootNode: cc.Node = null;
     private gameBoard: GameBoard = null;
-    private theForce: number = 0;
     private lineBallNodeRecord: cc.Node[] = null;
     private ballNodeRecord: cc.Node[] = null;
     private index: number = 0;
@@ -62,7 +63,7 @@ export class GameScene extends cc.Component {
         this.brickNodePool = new BrickNodePool(this.brickPrefabs);
 
         //给与球的冲量大小
-        this.theForce = 1000;
+        this.theForce = this.theForce <= 0 ? 600 : this.theForce;
         //用于记录轨迹
         this.lineBallNodeRecord = [];
         //用于记录弹射球
@@ -74,7 +75,7 @@ export class GameScene extends cc.Component {
         this.brickRootNode = this.node.children[0];
 
         //从加载完毕的背景中获取砖块配置器组件
-        this.brickConfig = this.bg.getComponent("BrickConfig");
+        this.gameConfig = this.bg.getComponent("GameConfig");
 
         //创建游戏棋盘数据处理器
         this.gameBoard = new GameBoard();
@@ -113,13 +114,21 @@ export class GameScene extends cc.Component {
     public changeColor(str: string, brick: Brick) {
         let res: number = brick.ifChangeColor();
         if (res != -1) {
-            let type: BRICKTYPE = brick.type;
-            brick.node.getComponent(cc.Sprite).spriteFrame = this.brickConfig.getBlockSpriteFrame(type, res);
+            let type: BRICK_TYPE = brick.type;
+            brick.node.getComponent(cc.Sprite).spriteFrame = this.gameConfig.getBlockSpriteFrame(type, res);
         }
     }
 
+    /**
+     * 
+     * @param dt 
+     */
+    public update(dt) {
+        //直接在每帧中对定位球进行判断
+    }
+
     private loadMap() {
-        let brickNodeArray: cc.Node[] = this.gameBoard.getBrickNodeArray(this.brickConfig, this.brickNodePool);
+        let brickNodeArray: cc.Node[] = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool);
         for (let i of brickNodeArray) {
             this.brickRootNode.addChild(i);
         }
@@ -168,27 +177,26 @@ export class GameScene extends cc.Component {
             if (other.tag != 1) {
                 //往第一个球的位置运动
                 //由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行约束
-                //other.node.runAction(cc.moveTo(this.timeInterval, this.fristPosition));
                 this.backBallRecord.push(other);
-                if (this.backBallRecord.length > 0) {
+                if (this.backBallRecord.length == 1) {
                     //开始集结小球
                     this.everyBallMoveToCenterPoint();
                 }
             } else {
-                //清空首位标记，因为下一次首先落地的不一定是当前碰撞体
+                //清楚首位标记
                 other.tag = 0;
             }
         }
     }
 
     /**
-     * 小球集结动作
+     * 落地小球集结
      */
     private everyBallMoveToCenterPoint() {
         if (this.backBallRecord.length <= 0) {
             return;
         } else {
-            let action: cc.FiniteTimeAction = cc.moveTo(this.timeInterval, this.fristPosition);
+            let action: cc.FiniteTimeAction = cc.moveTo(this.timeInterval, this.fristPosition).easing(cc.easeCircleActionInOut());
             let act: cc.ActionInterval = cc.sequence(action, cc.callFunc(this.everyBallMoveToCenterPoint, this));
             let temp: any = this.backBallRecord.shift();
             temp.node.runAction(act);
@@ -269,7 +277,6 @@ export class GameScene extends cc.Component {
         for (let i of this.lineBallNodeRecord) {
             this.lineBallNodePool.putLineBallNode(i);
         }
-        //cc.log("清理完成!");
     }
 
     /**
@@ -290,7 +297,7 @@ export class GameScene extends cc.Component {
     private initBall() {
         //先对弹射球的数据进行判断修正
         if (this.ballCount <= 0) {
-            console.log("预制球数量错误，重新修正为1!");
+            console.log("预制球数量错误，已修改为默认值1!");
             this.ballCount = 1;
         }
         if (!this.ballNodeRecord) {
