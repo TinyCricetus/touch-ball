@@ -1,6 +1,6 @@
 import { GameScene } from "./GameScene";
 import { BrickNodePool } from "./NodePool";
-import { BRICK_TYPE, BRICK_SIZE, ORIGIN_COLOR } from "./BrickData";
+import { BRICK_TYPE, BRICK_SIZE, ORIGIN_COLOR, MAP_WIDTH, MAP_HEIGHT } from "./BrickData";
 import { GameMap } from "./GameMap";
 import { GameConfig } from "./GameConfig";
 
@@ -200,21 +200,15 @@ export class GameBoard {
             for (let i: number = 0; i < reflectLength; i++) {
                 retArray[i] = cc.v2(posArray[length - i - 1]);
             }
-            // let posA: cc.Vec2 = cc.v2(posArray[length - 1]);
-            // let posB: cc.Vec2 = cc.v2(posArray[length - 2]);
             switch(reflectPos.reflectSide) {
                 case SIDE.LEFT:
                 case SIDE.RIGHT:
-                // posA.y = reflectPos.position.y * 2 - posA.y;
-                // posB.y = reflectPos.position.y * 2 - posB.y;
                 for (let i: number = 0; i < reflectLength; i++) {
                     retArray[i].y = reflectPos.position.y * 2 - retArray[i].y;
                 }
                 break;
 
                 case SIDE.TOP:
-                // posA.x = reflectPos.position.x * 2 - posA.x;
-                // posB.x = reflectPos.position.x * 2 - posB.x;
                 for (let i: number = 0; i < reflectLength; i++) {
                     retArray[i].x = reflectPos.position.x * 2 - retArray[i].x;
                 }
@@ -223,11 +217,16 @@ export class GameBoard {
                 default:
                 break;
             }
-            // posArray.push(posA);
-            // posArray.push(posB);
+            //console.log(retArray.length);
             for (let i of retArray) {
                 posArray.push(i);
             }
+        }
+    }
+
+    public moveDown(nodeArray: cc.Node[]) {
+        for (let i of nodeArray) {
+            i.runAction(cc.moveTo(0.2, i.position.x, i.position.y - BRICK_SIZE / 2));
         }
     }
 
@@ -235,8 +234,8 @@ export class GameBoard {
         this.brickStateArray = [];
         this.brickPosArray = [];
         //棋盘设置宽高为11和20
-        this.boardWidth = 11;
-        this.boardHeight = 20;
+        this.boardWidth = MAP_WIDTH;
+        this.boardHeight = MAP_HEIGHT;
         this.correctValue = 10;
         //注意初始化的顺序不可变换
         this.initPosArray();
@@ -305,6 +304,7 @@ export class GameBoard {
         let length: number = this.brickStateArray.length;
         for (let i = 0; i < this.brickStateArray.length; i++) {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {
+                //let test: BrickInf = maze[i][j];
                 if (maze[i][j] != undefined) {
                     this.brickStateArray[length - i - 1][j].type = maze[i][j].type;
                     this.brickStateArray[length - i - 1][j].life = maze[i][j].life;

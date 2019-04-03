@@ -65,14 +65,14 @@
         "__id__": 6
       },
       {
-        "__id__": 28
+        "__id__": 31
       }
     ],
     "_tag": -1,
     "_active": true,
     "_components": [
       {
-        "__id__": 37
+        "__id__": 40
       }
     ],
     "_prefab": null,
@@ -790,22 +790,16 @@
       },
       {
         "__id__": 23
+      },
+      {
+        "__id__": 27
       }
     ],
     "_tag": -1,
     "_active": false,
     "_components": [
       {
-        "__id__": 27
-      },
-      {
-        "__id__": 31
-      },
-      {
-        "__id__": 32
-      },
-      {
-        "__id__": 33
+        "__id__": 30
       },
       {
         "__id__": 34
@@ -815,6 +809,15 @@
       },
       {
         "__id__": 36
+      },
+      {
+        "__id__": 37
+      },
+      {
+        "__id__": 38
+      },
+      {
+        "__id__": 39
       }
     ],
     "_prefab": null,
@@ -1033,6 +1036,99 @@
     "_radius": 11.3
   },
   {
+    "__type__": "cc.Node",
+    "_name": "ReflectBall",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 21
+    },
+    "_children": [],
+    "_tag": -1,
+    "_active": false,
+    "_components": [
+      {
+        "__id__": 28
+      }
+    ],
+    "_prefab": {
+      "__id__": 29
+    },
+    "_id": "55H8aKUnFBLZYqZFBOnxvY",
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_cascadeOpacityEnabled": true,
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 22,
+      "height": 22
+    },
+    "_rotationX": 0,
+    "_rotationY": 0,
+    "_scaleX": 1,
+    "_scaleY": 1,
+    "_position": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": -625
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_localZOrder": 0,
+    "_globalZOrder": 0,
+    "_opacityModifyRGB": false,
+    "groupIndex": 1
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 27
+    },
+    "_enabled": true,
+    "_spriteFrame": {
+      "__uuid__": "9a6cc17a-b738-4e69-a4b7-ada8ad425cbe"
+    },
+    "_type": 0,
+    "_sizeMode": 1,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_atlas": {
+      "__uuid__": "de74eb63-f139-42a9-81be-6386f355db66"
+    }
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 27
+    },
+    "asset": {
+      "__uuid__": "fdfdeaef-93de-49ba-b025-4c8d86970a87"
+    },
+    "fileId": "f1vEUHlS5MtI+lU5jgWjIS",
+    "sync": false
+  },
+  {
     "__type__": "22599XKFW9PFpD6nAPWaBoR",
     "_name": "",
     "_objFlags": 0,
@@ -1042,6 +1138,9 @@
     "_enabled": true,
     "ball": {
       "__id__": 23
+    },
+    "reflectBall": {
+      "__id__": 27
     },
     "lineBallPrefab": {
       "__uuid__": "dd4496b0-9a0f-42a9-b29b-f3f8c46877b7"
@@ -1073,9 +1172,9 @@
       "__id__": 6
     },
     "touchContorl": {
-      "__id__": 28
+      "__id__": 31
     },
-    "ballCount": 20,
+    "ballCount": 1,
     "timeInterval": 0.1,
     "theForce": 800
   },
@@ -1091,10 +1190,10 @@
     "_active": false,
     "_components": [
       {
-        "__id__": 29
+        "__id__": 32
       },
       {
-        "__id__": 30
+        "__id__": 33
       }
     ],
     "_prefab": null,
@@ -1139,7 +1238,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 28
+      "__id__": 31
     },
     "_enabled": true,
     "_spriteFrame": null,
@@ -1163,7 +1262,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 28
+      "__id__": 31
     },
     "_enabled": true
   },

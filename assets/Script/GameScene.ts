@@ -16,6 +16,8 @@ const { ccclass, property } = cc._decorator;
 export class GameScene extends cc.Component {
     @property(cc.Node)
     ball: cc.Node = null;
+    @property(cc.Node)
+    reflectBall: cc.Node = null;
     @property(cc.Prefab)
     lineBallPrefab: cc.Prefab = null;
     @property(cc.Prefab)
@@ -41,6 +43,7 @@ export class GameScene extends cc.Component {
 
     public gameConfig: GameConfig = null;
 
+    private brickNodeArray: cc.Node[] = null;
     private brickRootNode: cc.Node = null;
     private gameBoard: GameBoard = null;
     private lineBallNodeRecord: cc.Node[] = null;
@@ -126,17 +129,9 @@ export class GameScene extends cc.Component {
         }
     }
 
-    /**
-     * 
-     * @param dt 
-     */
-    public update(dt) {
-        //直接在每帧中对定位球进行判断
-    }
-
     private loadMap() {
-        let brickNodeArray: cc.Node[] = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, this.gameLevel);
-        for (let i of brickNodeArray) {
+        this.brickNodeArray = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, this.gameLevel);
+        for (let i of this.brickNodeArray) {
             this.brickRootNode.addChild(i);
         }
     }
@@ -157,7 +152,6 @@ export class GameScene extends cc.Component {
         this.frist = true;
         this.schedule(function () {
             this.sendBall(this.ballNodeRecord[this.index++], reflect);
-            //console.log("目前是发射第"+ this.index + "个");
         }.bind(this), this.timeInterval, this.ballNodeRecord.length - 1, 0);
     }
 
@@ -200,6 +194,8 @@ export class GameScene extends cc.Component {
             }
             this.landCount++;
             if (this.landCount == this.ballCount) {
+                //开始校准坐标，全体下移一格
+                this.gameBoard.moveDown(this.brickNodeArray);
                 //关闭触控禁止
                 this.touchContorl.active = false;
             }
@@ -242,10 +238,8 @@ export class GameScene extends cc.Component {
             this.node.addChild(temp);
         }
 
-        let temp: cc.Node = this.ballNodePool.getBallNode();
-        temp.position = posB.position;
-        this.lineBallNodeRecord.push(temp);
-        this.node.addChild(temp);
+        this.reflectBall.active = true;
+        this.reflectBall.position = posB.position;
     }
 
     /**
@@ -262,8 +256,8 @@ export class GameScene extends cc.Component {
         //插入反射轨迹
         this.gameBoard.reflectDeal(posArray, posB);
 
-        //计算轨迹球增量(注意节点记录数组包含尾部反射点)
-        let limit: number = posArray.length - (this.lineBallNodeRecord.length - 1);
+        //计算轨迹球增量
+        let limit: number = posArray.length - (this.lineBallNodeRecord.length);
 
         let tail: cc.Node = this.lineBallNodeRecord.pop();
         if (limit > 0) {
@@ -286,13 +280,12 @@ export class GameScene extends cc.Component {
         for (let i = 0; i < posArray.length; i++) {
             this.lineBallNodeRecord[i].position = posArray[i];
         }
-        this.lineBallNodeRecord[this.lineBallNodeRecord.length - 1].position = posB.position;
+        this.reflectBall.position = posB.position;
     }
 
     //清理轨迹
     private clearBall() {
-        let tail: cc.Node = this.lineBallNodeRecord.pop();
-        this.ballNodePool.putBallNode(tail);
+        this.reflectBall.active = false;
 
         for (let i of this.lineBallNodeRecord) {
             this.lineBallNodePool.putLineBallNode(i);
