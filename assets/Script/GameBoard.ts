@@ -2,19 +2,19 @@ import { GameScene } from "./GameScene";
 import { BrickNodePool } from "./NodePool";
 import { BRICK_TYPE, BRICK_SIZE, ORIGIN_COLOR } from "./BrickData";
 import { GameMap } from "./GameMap";
-import { GameConfig, mapBrick } from "./GameConfig";
+import { GameConfig } from "./GameConfig";
 
 /**
  * 砖块信息类
  */
-class Brick {
+export class BrickInf {
     public type: number = 0;
     public position: cc.Vec2 = null;
     public life: number = 0;
-    public constructor() {
-        this.type = BRICK_TYPE.EMPTY;
+    public constructor(type: BRICK_TYPE, life: number) {
+        this.type = type;
         this.position = cc.v2(0, 0);
-        this.life = 10;
+        this.life = life;
     }
 }
 
@@ -47,7 +47,7 @@ export class GameBoard {
     private gameWidth: number = 720;
     private gameHeight: number = 1280;
 
-    private brickStateArray: Brick[][] = null;
+    private brickStateArray: BrickInf[][] = null;
     private brickPosArray: cc.Vec2[][] = null;
 
     //private gameMap: GameMap = null;
@@ -110,15 +110,15 @@ export class GameBoard {
      * @param gameConfig 砖块配置器
      * @param brickNodePool 砖块结点池
      */
-    public getBrickNodeArray(gameConfig: GameConfig, brickNodePool: BrickNodePool): cc.Node[] {
+    public getBrickNodeArray(gameConfig: GameConfig, brickNodePool: BrickNodePool, gemaLevel: number): cc.Node[] {
 
         //先配置地图
-        this.configMap(gameConfig);
+        this.configMap(gameConfig, gemaLevel);
 
         let brickNodeArray: cc.Node[] = [];
         for (let i = 0; i < this.brickStateArray.length; i++) {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {
-                let bsa: Brick = this.brickStateArray[i][j];
+                let bsa: BrickInf = this.brickStateArray[i][j];
                 if (bsa.type != BRICK_TYPE.EMPTY) {
                     //第一次生成的节点应该采用颜色最深的纹理(0-10)
                     let temp: cc.Node = brickNodePool.getBrickNode(bsa.type);
@@ -154,7 +154,7 @@ export class GameBoard {
         let absSideA: number = Math.abs(posA.x - posB.x);
         let absSideB: number = Math.abs(posA.y - posB.y);
         let distance: number = Math.sqrt(absSideA * absSideA + absSideB * absSideB);
-        let count: number = Math.floor(distance / 60);
+        let count: number = Math.floor(distance / 40);
         //cc.log(count - 1);
         let ballPosArray: cc.Vec2[] = [];
         for (let i = 1; i < count; i++) {
@@ -170,29 +170,43 @@ export class GameBoard {
      */
     public reflectDeal(posArray: cc.Vec2[], reflectPos: Reflect) {
         let length: number = posArray.length;
-        if (length < 2) {
-            //轨迹小于2时不产生反射
+        let reflectLength: number = 3;
+        if (length < reflectLength) {
+            //轨迹小于3时不产生反射
             return ;
         } else {
-            let posA: cc.Vec2 = cc.v2(posArray[length - 1]);
-            let posB: cc.Vec2 = cc.v2(posArray[length - 2]);
+            let retArray: cc.Vec2[] = [];
+            for (let i: number = 0; i < reflectLength; i++) {
+                retArray[i] = cc.v2(posArray[length - i - 1]);
+            }
+            // let posA: cc.Vec2 = cc.v2(posArray[length - 1]);
+            // let posB: cc.Vec2 = cc.v2(posArray[length - 2]);
             switch(reflectPos.reflectSide) {
                 case SIDE.LEFT:
                 case SIDE.RIGHT:
-                posA.y = reflectPos.position.y * 2 - posA.y;
-                posB.y = reflectPos.position.y * 2 - posB.y;
+                // posA.y = reflectPos.position.y * 2 - posA.y;
+                // posB.y = reflectPos.position.y * 2 - posB.y;
+                for (let i: number = 0; i < reflectLength; i++) {
+                    retArray[i].y = reflectPos.position.y * 2 - retArray[i].y;
+                }
                 break;
 
                 case SIDE.TOP:
-                posA.x = reflectPos.position.x * 2 - posA.x;
-                posB.x = reflectPos.position.x * 2 - posB.x;
+                // posA.x = reflectPos.position.x * 2 - posA.x;
+                // posB.x = reflectPos.position.x * 2 - posB.x;
+                for (let i: number = 0; i < reflectLength; i++) {
+                    retArray[i].x = reflectPos.position.x * 2 - retArray[i].x;
+                }
                 break;
 
                 default:
                 break;
             }
-            posArray.push(posA);
-            posArray.push(posB);
+            // posArray.push(posA);
+            // posArray.push(posB);
+            for (let i of retArray) {
+                posArray.push(i);
+            }
         }
     }
 
@@ -218,7 +232,7 @@ export class GameBoard {
         for (let i = 0; i < this.boardHeight; i++) {
             this.brickStateArray[i] = [];
             for (let j = 0; j < this.boardWidth; j++) {
-                let temp: Brick = new Brick();
+                let temp: BrickInf = new BrickInf(BRICK_TYPE.EMPTY, 0);
                 this.brickStateArray[i][j] = temp;
                 this.brickStateArray[i][j].type = BRICK_TYPE.EMPTY;
             }
@@ -263,9 +277,9 @@ export class GameBoard {
     /**
      * 配置地图
      */
-    private configMap(gameConfig: GameConfig) {
+    private configMap(gameConfig: GameConfig, gameLevel: number) {
         //获取地图
-        let maze: mapBrick[][] = gameConfig.getGameMap(0);
+        let maze: BrickInf[][] = gameConfig.getGameMap(gameLevel);
         //length用于上下翻转地图，使得更加符合地图配置
         let length: number = this.brickStateArray.length;
         for (let i = 0; i < this.brickStateArray.length; i++) {

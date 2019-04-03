@@ -24,6 +24,8 @@ export class GameScene extends cc.Component {
     brickPrefabs: cc.Prefab[] = [];
     @property(cc.Node)
     bg: cc.Node = null;
+    @property(cc.Node)
+    choice: cc.Node = null;
     @property(cc.Integer)
     ballCount: number = 0;
     @property(cc.Integer)
@@ -45,6 +47,7 @@ export class GameScene extends cc.Component {
     private frist: boolean = false;
     private fristPosition: cc.Vec2 = null;
     private backBallRecord: any[] = null;
+    private gameLevel: number = 0;
 
     public onLoad() {
         //开启物理引擎
@@ -76,6 +79,7 @@ export class GameScene extends cc.Component {
 
         //从加载完毕的背景中获取砖块配置器组件
         this.gameConfig = this.bg.getComponent("GameConfig");
+        this.gameLevel = this.choice.getComponent("Choice").getChoice();
 
         //创建游戏棋盘数据处理器
         this.gameBoard = new GameBoard();
@@ -128,7 +132,7 @@ export class GameScene extends cc.Component {
     }
 
     private loadMap() {
-        let brickNodeArray: cc.Node[] = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool);
+        let brickNodeArray: cc.Node[] = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, this.gameLevel);
         for (let i of brickNodeArray) {
             this.brickRootNode.addChild(i);
         }
@@ -161,6 +165,10 @@ export class GameScene extends cc.Component {
     private getReflectPos(event: cc.Event.EventTouch): Reflect {
         let pos: cc.Vec2 = this.node.convertToNodeSpaceAR(event.getLocation());
         let reflectPos: Reflect = this.gameBoard.figureDestination(this.ball.position, pos);
+        //反射点几乎与原点产生重叠时取消所有操作
+        if (Math.abs(reflectPos.position.y - pos.y) <= 30) {
+            reflectPos.position.y = pos.y + 30;
+        }
         return reflectPos;
     }
 
@@ -209,6 +217,9 @@ export class GameScene extends cc.Component {
      * @param posB 反射点
      */
     private drawLine(posA: cc.Vec2, posB: Reflect) {
+        if (posA == null || posB == null) {
+            return;
+        }
         this.lineBallNodeRecord = [];
         let posArray: cc.Vec2[] = this.gameBoard.figureBallOnLine(posA, posB.position);
 
@@ -285,6 +296,9 @@ export class GameScene extends cc.Component {
      * @param dir 方向反射类
      */
     private sendBall(ball: cc.Node, dir: Reflect) {
+        if (ball == null || dir == null) {
+            return;
+        }
         let ballRB: cc.RigidBody = ball.getComponent(cc.RigidBody);
         let force: cc.Vec2 = this.gameBoard.getUnitVec(dir.position.sub(ball.position));
         ballRB.applyLinearImpulse(force.scale(cc.v2(this.theForce, this.theForce)),
