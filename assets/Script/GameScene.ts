@@ -26,6 +26,8 @@ export class GameScene extends cc.Component {
     bg: cc.Node = null;
     @property(cc.Node)
     choice: cc.Node = null;
+    @property(cc.Node)
+    touchContorl: cc.Node = null;
     @property(cc.Integer)
     ballCount: number = 0;
     @property(cc.Integer)
@@ -44,6 +46,7 @@ export class GameScene extends cc.Component {
     private lineBallNodeRecord: cc.Node[] = null;
     private ballNodeRecord: cc.Node[] = null;
     private index: number = 0;
+    private landCount: number = 0;
     private frist: boolean = false;
     private fristPosition: cc.Vec2 = null;
     private backBallRecord: any[] = null;
@@ -149,6 +152,7 @@ export class GameScene extends cc.Component {
     private onTouchEnd(event: cc.Event.EventTouch) {
         this.clearBall();
         this.index = 0;
+        this.landCount = 0;
         let reflect: Reflect = this.getReflectPos(event);
         this.frist = true;
         this.schedule(function () {
@@ -166,7 +170,7 @@ export class GameScene extends cc.Component {
         let pos: cc.Vec2 = this.node.convertToNodeSpaceAR(event.getLocation());
         let reflectPos: Reflect = this.gameBoard.figureDestination(this.ball.position, pos);
         //反射点几乎与原点产生重叠时取消所有操作
-        if (Math.abs(reflectPos.position.y - pos.y) <= 30) {
+        if (reflectPos && Math.abs(reflectPos.position.y - pos.y) <= 30) {
             reflectPos.position.y = pos.y + 30;
         }
         return reflectPos;
@@ -193,6 +197,11 @@ export class GameScene extends cc.Component {
             } else {
                 //清楚首位标记
                 other.tag = 0;
+            }
+            this.landCount++;
+            if (this.landCount == this.ballCount) {
+                //关闭触控禁止
+                this.touchContorl.active = false;
             }
         }
     }
@@ -299,6 +308,10 @@ export class GameScene extends cc.Component {
         if (ball == null || dir == null) {
             return;
         }
+
+        //开启触控禁止
+        this.touchContorl.active = true;
+
         let ballRB: cc.RigidBody = ball.getComponent(cc.RigidBody);
         let force: cc.Vec2 = this.gameBoard.getUnitVec(dir.position.sub(ball.position));
         ballRB.applyLinearImpulse(force.scale(cc.v2(this.theForce, this.theForce)),

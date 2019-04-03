@@ -83,21 +83,42 @@ export class GameBoard {
 
         let sideArray: cc.Vec2[] = [pointA, pointB, pointC];
         //修改判断顺序可以优化弹道
-        for (let i: number = 0; i < sideArray.length; i++) {
-            if (this.isContain(sideArray[i])) {
-                //补充反射轨迹
-                switch(i) {
-                    case 0:
-                    return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
-                    
-                    case 1:
-                    return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
-                    
-                    case 2:
-                    return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
-
-                    default:
-                    break;
+        if (posA.x > 0) {
+            for (let i: number = 0; i < sideArray.length; i++) {
+                if (this.isContain(sideArray[i])) {
+                    //补充反射轨迹
+                    switch(i) {
+                        case 0:
+                        return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
+                        
+                        case 1:
+                        return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
+                        
+                        case 2:
+                        return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
+    
+                        default:
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (let i: number = sideArray.length - 1; i >= 0; i--) {
+                if (this.isContain(sideArray[i])) {
+                    //补充反射轨迹
+                    switch(i) {
+                        case 0:
+                        return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
+                        
+                        case 1:
+                        return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
+                        
+                        case 2:
+                        return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
+    
+                        default:
+                        break;
+                    }
                 }
             }
         }
