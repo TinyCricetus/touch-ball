@@ -3,6 +3,7 @@ import { BrickNodePool } from "./NodePool";
 import { BRICK_TYPE, BRICK_SIZE, ORIGIN_COLOR, MAP_WIDTH, MAP_HEIGHT } from "./BrickData";
 import { GameMap } from "./GameMap";
 import { GameConfig } from "./GameConfig";
+import { GameBasic } from "./GameBasic";
 
 /**
  * 砖块信息类
@@ -44,8 +45,8 @@ export class Reflect {
  */
 export class GameBoard {
 
-    private gameWidth: number = 720;
-    private gameHeight: number = 1280;
+    public gameWidth: number = 720;
+    public gameHeight: number = 1280;
 
     private brickStateArray: BrickInf[][] = null;
     private brickPosArray: cc.Vec2[][] = null;
@@ -226,8 +227,13 @@ export class GameBoard {
 
     public moveDown(nodeArray: cc.Node[]) {
         for (let i of nodeArray) {
-            i.runAction(cc.moveTo(0.2, i.position.x, i.position.y - BRICK_SIZE / 2));
+            let act: cc.ActionInterval = cc.sequence(cc.moveTo(0.2, i.position.x, i.position.y - BRICK_SIZE), cc.callFunc(this.judgeOver, i));
+            i.runAction(act);
         }
+    }
+
+    public judgeOver() {
+        GameBasic.getInstance().notifyEvent("gameOver", this);
     }
 
     private init() {
@@ -306,8 +312,10 @@ export class GameBoard {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {
                 //let test: BrickInf = maze[i][j];
                 if (maze[i][j] != undefined) {
-                    this.brickStateArray[length - i - 1][j].type = maze[i][j].type;
-                    this.brickStateArray[length - i - 1][j].life = maze[i][j].life;
+                    // this.brickStateArray[length - i - 1][j].type = maze[i][j].type;
+                    // this.brickStateArray[length - i - 1][j].life = maze[i][j].life;
+                    this.brickStateArray[i][j].type = maze[i][j].type;
+                    this.brickStateArray[i][j].life = maze[i][j].life;
                 }
             }
         }

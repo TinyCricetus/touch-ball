@@ -18,6 +18,8 @@ export class GameScene extends cc.Component {
     ball: cc.Node = null;
     @property(cc.Node)
     reflectBall: cc.Node = null;
+    @property(cc.Node)
+    gameOver: cc.Node = null;
     @property(cc.Prefab)
     lineBallPrefab: cc.Prefab = null;
     @property(cc.Prefab)
@@ -100,8 +102,10 @@ export class GameScene extends cc.Component {
         this.frist = false;
         this.fristPosition = cc.v2();
 
-        //注册颜色事件
+        //注册颜色变化事件
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
+        //注册游戏结束事件
+        GameBasic.getInstance().registerEvent("gameOver", this.gameOverScene, this);
     }
 
     public onDestroy() {
@@ -126,6 +130,17 @@ export class GameScene extends cc.Component {
         if (res != -1) {
             let type: BRICK_TYPE = brick.type;
             brick.node.getComponent(cc.Sprite).spriteFrame = this.gameConfig.getBlockSpriteFrame(type, res);
+        }
+    }
+
+    /**
+     * 判断游戏结束
+     */
+    public gameOverScene(eventName: string, node: cc.Node) {
+        if (node.position.y <= -this.gameBoard.gameHeight / 2) {
+            this.gameOver.active = true;
+        } else {
+            return ;
         }
     }
 
@@ -274,7 +289,7 @@ export class GameScene extends cc.Component {
             }
         }
         this.lineBallNodeRecord.push(tail);
-        if (posArray.length != this.lineBallNodeRecord.length - 1) {
+        if (posArray.length != this.lineBallNodeRecord.length) {
             cc.log("轨道球数量计算出现错误!");
         }
         for (let i = 0; i < posArray.length; i++) {
