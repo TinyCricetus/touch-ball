@@ -55,7 +55,7 @@ export class GameScene extends cc.Component {
     private frist: boolean = false;
     private fristPosition: cc.Vec2 = null;
     private backBallRecord: any[] = null;
-    private gameLevel: number = 0;
+    private currentLevel: number = 0;
 
     public onLoad() {
         //开启物理引擎
@@ -87,13 +87,13 @@ export class GameScene extends cc.Component {
 
         //从加载完毕的背景中获取砖块配置器组件
         this.gameConfig = this.bg.getComponent("GameConfig");
-        this.gameLevel = this.choice.getComponent("Choice").getChoice();
+        this.currentLevel = this.choice.getComponent("Choice").getChoice();
 
         //创建游戏棋盘数据处理器
         this.gameBoard = new GameBoard();
 
         //地图加载需要控制主场景的加载，不然还未加载完成便会出现使用的情况
-        this.loadMap();
+        this.loadMap(this.currentLevel);
 
         //初始化弹射球
         this.initBall();
@@ -134,7 +134,7 @@ export class GameScene extends cc.Component {
     }
 
     /**
-     * 判断游戏结束
+     * 用于回调使用，判断游戏结束
      */
     public gameOverScene(eventName: string, node: cc.Node) {
         if (node.position.y <= -this.gameBoard.gameHeight / 2) {
@@ -144,8 +144,41 @@ export class GameScene extends cc.Component {
         }
     }
 
-    private loadMap() {
-        this.brickNodeArray = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, this.gameLevel);
+    private ifNextLevel(): boolean {
+        for (let i of this.brickNodeArray) {
+            if (i.active == true) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 进入下一关
+     */
+    private nextLevel() {
+        this.clearMap();
+        this.currentLevel++;
+        this.loadMap(this.currentLevel);
+    }
+
+    private clearMap() {
+        for (let i of this.brickNodeArray) {
+            let type: number = i.getComponent("Brick").type;
+            this.brickNodePool.putBrickNode(i, type);
+        }
+        while (this.brickNodeArray.length > 0) {
+            this.brickNodeArray.shift();
+        }
+    }
+
+    /**
+     * 加载地图，gameLevel为游戏关卡序号
+     * @param gameLevel 
+     */
+    private loadMap(gameLevel: number) {
+        console.log("加载地图:" + gameLevel);
+        this.brickNodeArray = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, gameLevel);
         for (let i of this.brickNodeArray) {
             this.brickRootNode.addChild(i);
         }
@@ -161,13 +194,17 @@ export class GameScene extends cc.Component {
 
     private onTouchEnd(event: cc.Event.EventTouch) {
         this.clearBall();
-        this.index = 0;
-        this.landCount = 0;
+        this.clearState();
         let reflect: Reflect = this.getReflectPos(event);
-        this.frist = true;
         this.schedule(function () {
             this.sendBall(this.ballNodeRecord[this.index++], reflect);
         }.bind(this), this.timeInterval, this.ballNodeRecord.length - 1, 0);
+    }
+
+    private clearState() {
+        this.index = 0;
+        this.landCount = 0;
+        this.frist = true;
     }
 
     private onTouchCancel(event: cc.Event.EventTouch) {
@@ -211,6 +248,10 @@ export class GameScene extends cc.Component {
             if (this.landCount == this.ballCount) {
                 //开始校准坐标，全体下移一格
                 this.gameBoard.moveDown(this.brickNodeArray);
+                //检测下一关条件是否满足
+                if (this.ifNextLevel()) {
+                    this.nextLevel();
+                }
                 //关闭触控禁止
                 this.touchContorl.active = false;
             }

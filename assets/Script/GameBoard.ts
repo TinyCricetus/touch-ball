@@ -154,6 +154,7 @@ export class GameBoard {
                 }
             }
         }
+        this.initStateArray();
         return brickNodeArray;
     }
 
@@ -306,14 +307,10 @@ export class GameBoard {
     private configMap(gameConfig: GameConfig, gameLevel: number) {
         //获取地图
         let maze: BrickInf[][] = gameConfig.getGameMap(gameLevel);
-        //length用于上下翻转地图，使得更加符合地图配置
-        let length: number = this.brickStateArray.length;
         for (let i = 0; i < this.brickStateArray.length; i++) {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {
                 //let test: BrickInf = maze[i][j];
                 if (maze[i][j] != undefined) {
-                    // this.brickStateArray[length - i - 1][j].type = maze[i][j].type;
-                    // this.brickStateArray[length - i - 1][j].life = maze[i][j].life;
                     this.brickStateArray[i][j].type = maze[i][j].type;
                     this.brickStateArray[i][j].life = maze[i][j].life;
                 }

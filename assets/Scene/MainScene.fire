@@ -1180,7 +1180,7 @@
     "touchContorl": {
       "__id__": 36
     },
-    "ballCount": 2,
+    "ballCount": 50,
     "timeInterval": 0.1,
     "theForce": 800
   },
