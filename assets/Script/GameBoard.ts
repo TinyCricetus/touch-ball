@@ -78,9 +78,9 @@ export class GameBoard {
         let sideB: number = -sideA;
         let sideC: number = this.gameHeight / 2;
 
-        let pointA: cc.Vec2 = cc.v2(sideA + this.correctValue, sideA * k + b);
-        let pointB: cc.Vec2 = cc.v2(sideB - this.correctValue, sideB * k + b);
-        let pointC: cc.Vec2 = cc.v2((sideC - b) / k, sideC - this.correctValue);
+        let pointA: cc.Vec2 = cc.v2(sideA + this.correctValue, Math.floor(sideA * k + b));
+        let pointB: cc.Vec2 = cc.v2(sideB - this.correctValue, Math.floor(sideB * k + b));
+        let pointC: cc.Vec2 = cc.v2(Math.floor((sideC - b) / k), sideC - this.correctValue);
 
         let sideArray: cc.Vec2[] = [pointA, pointB, pointC];
         //修改判断顺序可以优化弹道

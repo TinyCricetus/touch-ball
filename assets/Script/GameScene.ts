@@ -87,6 +87,7 @@ export class GameScene extends cc.Component {
 
         //从加载完毕的背景中获取砖块配置器组件
         this.gameConfig = this.bg.getComponent("GameConfig");
+        //获取关卡选择信息
         this.currentLevel = this.choice.getComponent("Choice").getChoice();
 
         //创建游戏棋盘数据处理器
@@ -125,7 +126,7 @@ export class GameScene extends cc.Component {
      * @param str 
      * @param brick 
      */
-    public changeColor(str: string, brick: Brick) {
+    private changeColor(str: string, brick: Brick) {
         let res: number = brick.ifChangeColor();
         if (res != -1) {
             let type: BRICK_TYPE = brick.type;
@@ -136,7 +137,7 @@ export class GameScene extends cc.Component {
     /**
      * 用于回调使用，判断游戏结束
      */
-    public gameOverScene(eventName: string, node: cc.Node) {
+    private gameOverScene(eventName: string, node: cc.Node) {
         if (node.position.y <= -this.gameBoard.gameHeight / 2) {
             this.gameOver.active = true;
         } else {
@@ -211,7 +212,9 @@ export class GameScene extends cc.Component {
         this.clearBall();
     }
 
-    //获取反射点
+    /**
+     * 获取反射点
+     *  */
     private getReflectPos(event: cc.Event.EventTouch): Reflect {
         let pos: cc.Vec2 = this.node.convertToNodeSpaceAR(event.getLocation());
         let reflectPos: Reflect = this.gameBoard.figureDestination(this.ball.position, pos);
@@ -223,26 +226,24 @@ export class GameScene extends cc.Component {
     }
 
     //落地时的回调函数
-    private onEndContact(contact: cc.PhysicsContact, self: any, other: any) {
+    private onBeginContact(contact: cc.PhysicsContact, self: any, other: any) {
         if (self.tag == 4) {
             other.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, 0);
             if (this.frist) {
-                other.tag = 1;
                 this.fristPosition = other.node.position;
                 this.frist = false;
             }
-            //console.log(other.tag);
             if (other.tag != 1) {
-                //往第一个球的位置运动
-                //由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行约束
+                /**
+                 * 往第一个球的位置运动
+                 * 由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行约束
+                 * 
+                 */
                 this.backBallRecord.push(other);
                 if (this.backBallRecord.length == 1) {
                     //开始集结小球
                     this.everyBallMoveToCenterPoint();
                 }
-            } else {
-                //清楚首位标记
-                other.tag = 0;
             }
             this.landCount++;
             if (this.landCount == this.ballCount) {
@@ -256,6 +257,17 @@ export class GameScene extends cc.Component {
                 this.touchContorl.active = false;
             }
         }
+        console.log("begin:" + this.ballNodeRecord[0].position);
+    }
+
+    private onEndContact(contact: cc.PhysicsContact, self: any, other: any) {
+        //碰撞结束修正全体纵向坐标
+        other.node.position.y = -this.node.height / 2 + other.node.height / 2;
+        console.log("end:" + this.ballNodeRecord[0].position);
+    }
+
+    public update(dt) {
+       
     }
 
     /**
