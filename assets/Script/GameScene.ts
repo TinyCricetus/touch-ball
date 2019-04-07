@@ -257,13 +257,14 @@ export class GameScene extends cc.Component {
                 this.touchContorl.active = false;
             }
         }
-        console.log("begin:" + this.ballNodeRecord[0].position);
+        //console.log("begin:" + this.ballNodeRecord[0].position);
     }
 
     private onEndContact(contact: cc.PhysicsContact, self: any, other: any) {
         //碰撞结束修正全体纵向坐标
         other.node.position.y = -this.node.height / 2 + other.node.height / 2;
-        console.log("end:" + this.ballNodeRecord[0].position);
+        
+        //console.log("end:" + this.ballNodeRecord[0].position);
     }
 
     public update(dt) {
