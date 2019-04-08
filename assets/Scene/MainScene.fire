@@ -1180,7 +1180,7 @@
     "touchContorl": {
       "__id__": 36
     },
-    "ballCount": 30,
+    "ballCount": 50,
     "timeInterval": 0.05,
     "theForce": 800
   },
@@ -1553,8 +1553,8 @@
     "body": null,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": -777
+      "x": -2.9,
+      "y": -774.7
     },
     "_size": {
       "__type__": "cc.Size",

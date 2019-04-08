@@ -1,7 +1,7 @@
 import { BrickNodePool, LineBallNodePool, BallNodePool } from "./NodePool";
 import { GameBoard, Reflect } from "./GameBoard";
 import { GameConfig } from "./GameConfig";
-import { BRICK_TYPE } from "./BrickData";
+import { BRICK_TYPE, BRICK_SIZE } from "./BrickData";
 import { GameBasic } from "./GameBasic";
 import { Brick } from "./Brick";
 
@@ -101,7 +101,6 @@ export class GameScene extends cc.Component {
 
         this.index = 0;
         this.frist = false;
-        this.fristPosition = cc.v2();
 
         //注册颜色变化事件
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
@@ -121,6 +120,10 @@ export class GameScene extends cc.Component {
         return this.node.convertToNodeSpaceAR(pos);
     }
 
+    public update(dt) {
+
+    }
+
     /**
      * 用于砖块的颜色变化回调
      * @param str 
@@ -138,7 +141,8 @@ export class GameScene extends cc.Component {
      * 用于回调使用，判断游戏结束
      */
     private gameOverScene(eventName: string, node: cc.Node) {
-        if (node.position.y <= -this.gameBoard.gameHeight / 2) {
+        //console.log(Math.abs(node.position.y + this.gameBoard.gameHeight / 2));
+        if (Math.abs(node.position.y + this.gameBoard.gameHeight / 2) <= BRICK_SIZE / 2) {
             this.gameOver.active = true;
         } else {
             return ;
@@ -214,7 +218,7 @@ export class GameScene extends cc.Component {
 
     /**
      * 获取反射点
-     *  */
+     **/
     private getReflectPos(event: cc.Event.EventTouch): Reflect {
         let pos: cc.Vec2 = this.node.convertToNodeSpaceAR(event.getLocation());
         let reflectPos: Reflect = this.gameBoard.figureDestination(this.ball.position, pos);
@@ -230,14 +234,13 @@ export class GameScene extends cc.Component {
         if (self.tag == 4) {
             other.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, 0);
             if (this.frist) {
-                this.fristPosition = other.node.position;
+                this.fristPosition = cc.v2(other.node.position.x, -this.gameBoard.gameHeight / 2);
                 this.frist = false;
             }
             if (other.tag != 1) {
                 /**
                  * 往第一个球的位置运动
                  * 由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行约束
-                 * 
                  */
                 this.backBallRecord.push(other);
                 if (this.backBallRecord.length == 1) {
@@ -256,19 +259,8 @@ export class GameScene extends cc.Component {
                 //关闭触控禁止
                 this.touchContorl.active = false;
             }
+            //console.log("begin:" + this.ballNodeRecord[0].position);
         }
-        //console.log("begin:" + this.ballNodeRecord[0].position);
-    }
-
-    private onEndContact(contact: cc.PhysicsContact, self: any, other: any) {
-        //碰撞结束修正全体纵向坐标
-        other.node.position.y = -this.node.height / 2 + other.node.height / 2;
-        
-        //console.log("end:" + this.ballNodeRecord[0].position);
-    }
-
-    public update(dt) {
-       
     }
 
     /**
@@ -278,7 +270,7 @@ export class GameScene extends cc.Component {
         if (this.backBallRecord.length <= 0) {
             return;
         } else {
-            let action: cc.FiniteTimeAction = cc.moveTo(this.timeInterval, this.fristPosition).easing(cc.easeCircleActionInOut());
+            let action: cc.FiniteTimeAction = cc.moveTo(0.3, this.fristPosition).easing(cc.easeCircleActionInOut());
             let act: cc.ActionInterval = cc.sequence(action, cc.callFunc(this.everyBallMoveToCenterPoint, this));
             let temp: any = this.backBallRecord.shift();
             temp.node.runAction(act);
