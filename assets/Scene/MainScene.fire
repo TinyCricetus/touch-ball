@@ -1169,6 +1169,9 @@
       },
       {
         "__uuid__": "00057e97-f9aa-4e04-a809-eec745c35590"
+      },
+      {
+        "__uuid__": "9e62e8fc-7f42-4094-8cb4-c9f58c2cae2f"
       }
     ],
     "bg": {
@@ -1180,8 +1183,8 @@
     "touchContorl": {
       "__id__": 36
     },
-    "ballCount": 50,
-    "timeInterval": 0.05,
+    "ballCount": 10,
+    "timeInterval": 0.1,
     "theForce": 800
   },
   {

@@ -145,12 +145,19 @@ export class GameBoard {
                     //第一次生成的节点应该采用颜色最深的纹理(0-10)
                     let temp: cc.Node = brickNodePool.getBrickNode(bsa.type);
 
-                    //从这里插入生命值设定
-                    temp.getComponent("Brick").init(bsa.life, ORIGIN_COLOR, bsa.type);
-
-                    temp.getComponent(cc.Sprite).spriteFrame = gameConfig.getBlockSpriteFrame(bsa.type, ORIGIN_COLOR);
+                    if (!this.isExBrick(bsa.type)) {
+                        //从这里插入生命值设定
+                        temp.getComponent("Brick").init(bsa.life, ORIGIN_COLOR, bsa.type);
+                        temp.getComponent(cc.Sprite).spriteFrame = gameConfig.getBlockSpriteFrame(bsa.type, ORIGIN_COLOR);
+                    }
+                    
                     temp.position = bsa.position;
-                    brickNodeArray.push(temp);
+                    if (this.isExBrick(bsa.type)) {
+                        brickNodeArray.push(temp);
+
+                    } else {
+                        brickNodeArray.unshift(temp);
+                    }
                 }
             }
         }
@@ -235,6 +242,19 @@ export class GameBoard {
 
     public judgeOver() {
         GameBasic.getInstance().notifyEvent("gameOver", this);
+    }
+
+    /**
+     * 判断是否特效方块
+     */
+    public isExBrick(brickType: BRICK_TYPE): boolean {
+        switch(brickType) {
+            case BRICK_TYPE.SQUARE_DISMISS_ROW:
+            return true;
+
+            default:
+            return false;
+        }
     }
 
     private init() {

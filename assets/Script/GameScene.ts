@@ -106,6 +106,8 @@ export class GameScene extends cc.Component {
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
         //注册游戏结束事件
         GameBasic.getInstance().registerEvent("gameOver", this.gameOverScene, this);
+        //注册横扫特效
+        GameBasic.getInstance().registerEvent("DismissRow", this.dismissRow, this);
     }
 
     public onDestroy() {
@@ -118,10 +120,6 @@ export class GameScene extends cc.Component {
     //坐标统一
     public positionUnify(pos: cc.Vec2): cc.Vec2 {
         return this.node.convertToNodeSpaceAR(pos);
-    }
-
-    public update(dt) {
-
     }
 
     /**
@@ -140,12 +138,39 @@ export class GameScene extends cc.Component {
     /**
      * 用于回调使用，判断游戏结束
      */
-    private gameOverScene(eventName: string, node: cc.Node) {
+    private gameOverScene(eventName: string, targetNode: cc.Node) {
         //console.log(Math.abs(node.position.y + this.gameBoard.gameHeight / 2));
-        if (Math.abs(node.position.y + this.gameBoard.gameHeight / 2) <= BRICK_SIZE / 2) {
+        if (Math.abs(targetNode.position.y + this.gameBoard.gameHeight / 2) <= BRICK_SIZE / 2) {
             this.gameOver.active = true;
         } else {
-            return ;
+            return;
+        }
+    }
+
+    /**
+     * 横扫消除特效
+     * @param eventName 
+     * @param targetNode 
+     */
+    private dismissRow(eventName: string, targetNode: cc.Node) {
+        //遍历所有砖块
+        for (let i of this.brickNodeArray) {
+            let iBrick: Brick = i.getComponent(Brick);
+            //将特效砖块取消遍历
+            if (iBrick == null) {
+                continue;
+            }
+            let brickType: BRICK_TYPE = iBrick.type;
+            if (!this.gameBoard.isExBrick(brickType)) {
+                if (Math.abs(targetNode.position.y - i.position.y) <= 10) {
+                    if (iBrick.lifeValue > 1) {
+                        iBrick.updateLifeValue(iBrick.lifeValue - 1);
+                    } else {
+                        i.active = false;
+                    }
+
+                }
+            }
         }
     }
 

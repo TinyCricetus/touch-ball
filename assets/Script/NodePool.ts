@@ -51,28 +51,25 @@ export class BrickNodePool {
         switch(brickType) {
             case BRICK_TYPE.SQUARE:
             return 0;
-            break;
 
             case BRICK_TYPE.TRIANGLE_LEFT_BOTTOM:
             return 1;
-            break;
 
             case BRICK_TYPE.TRIANGLE_LEFT_TOP:
             return 4;
-            break;
 
             case BRICK_TYPE.TRIANGLE_RIGHT_BOTTOM:
             return 2;
-            break;
 
             case BRICK_TYPE.TRIANGLE_RIGHT_TOP:
             return 3;
-            break;
+            
+            case BRICK_TYPE.SQUARE_DISMISS_ROW:
+            return 5;
 
             default:
             cc.log("砖块种类匹配出错!");
             return 0;//出错时默认返回0
-            break;
         }
     }
 
