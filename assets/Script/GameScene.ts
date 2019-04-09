@@ -4,6 +4,7 @@ import { GameConfig } from "./GameConfig";
 import { BRICK_TYPE, BRICK_SIZE } from "./BrickData";
 import { GameBasic } from "./GameBasic";
 import { Brick } from "./Brick";
+import { ExBrick } from "./ExBrick";
 
 
 const { ccclass, property } = cc._decorator;
@@ -106,8 +107,8 @@ export class GameScene extends cc.Component {
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
         //注册游戏结束事件
         GameBasic.getInstance().registerEvent("gameOver", this.gameOverScene, this);
-        //注册横扫特效
-        GameBasic.getInstance().registerEvent("DismissRow", this.dismissRow, this);
+        //注册横扫特效事件
+        GameBasic.getInstance().registerEvent("DismissRow", this.dismissRowCol, this);
     }
 
     public onDestroy() {
@@ -152,7 +153,56 @@ export class GameScene extends cc.Component {
      * @param eventName 
      * @param targetNode 
      */
-    private dismissRow(eventName: string, targetNode: cc.Node) {
+    private dismissRowCol(eventName: string, targetNode: cc.Node) {
+        //遍历所有砖块
+        let judgeType: BRICK_TYPE = targetNode.getComponent(ExBrick).type;
+        for (let i of this.brickNodeArray) {
+            let iBrick: Brick = i.getComponent(Brick);
+            //将特效砖块取消遍历
+            if (iBrick == null) {
+                continue;
+            }
+            let brickType: BRICK_TYPE = iBrick.type;
+            if (!this.gameBoard.isExBrick(brickType)) {
+                if (this.isDismiss(judgeType, targetNode.position, i.position)) {
+                    if (iBrick.lifeValue > 1) {
+                        iBrick.updateLifeValue(iBrick.lifeValue - 1);
+                    } else {
+                        i.active = false;
+                    }
+
+                }
+            }
+        }
+    }
+
+    private isDismiss(type: BRICK_TYPE, posA: cc.Vec2, posB: cc.Vec2): boolean {
+        switch(type) {
+            case BRICK_TYPE.SQUARE_DISMISS_ROW:
+            if (Math.abs(posA.y - posB.y) <= 10) {
+                return true;
+            } else {
+                return false;
+            }
+            
+
+
+            case BRICK_TYPE.SQUARE_DISMISS_COl:
+            if (Math.abs(posA.x - posB.x) <= 10) {
+                return true;
+            } else {
+                return false;
+            }
+
+            default:
+            return false;
+        }
+    }
+
+    /**
+     * 竖扫消除特效
+     */
+    private dismissCol(eventName: string, targetNode: cc.Node) {
         //遍历所有砖块
         for (let i of this.brickNodeArray) {
             let iBrick: Brick = i.getComponent(Brick);
@@ -162,7 +212,7 @@ export class GameScene extends cc.Component {
             }
             let brickType: BRICK_TYPE = iBrick.type;
             if (!this.gameBoard.isExBrick(brickType)) {
-                if (Math.abs(targetNode.position.y - i.position.y) <= 10) {
+                if (Math.abs(targetNode.position.x - i.position.x) <= 10) {
                     if (iBrick.lifeValue > 1) {
                         iBrick.updateLifeValue(iBrick.lifeValue - 1);
                     } else {
@@ -176,7 +226,7 @@ export class GameScene extends cc.Component {
 
     private ifNextLevel(): boolean {
         for (let i of this.brickNodeArray) {
-            if (i.active == true) {
+            if (i.active == true && i.getComponent(Brick)) {
                 return false;
             }
         }
@@ -194,7 +244,13 @@ export class GameScene extends cc.Component {
 
     private clearMap() {
         for (let i of this.brickNodeArray) {
-            let type: number = i.getComponent("Brick").type;
+            let iBrick: Brick = i.getComponent(Brick);
+            let type: BRICK_TYPE = null;
+            if (iBrick == null) {
+                type = i.getComponent(ExBrick).type;
+            } else {
+                type = iBrick.type;
+            }
             this.brickNodePool.putBrickNode(i, type);
         }
         while (this.brickNodeArray.length > 0) {

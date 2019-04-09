@@ -4,6 +4,8 @@ import { BRICK_TYPE, BRICK_SIZE, ORIGIN_COLOR, MAP_WIDTH, MAP_HEIGHT } from "./B
 import { GameMap } from "./GameMap";
 import { GameConfig } from "./GameConfig";
 import { GameBasic } from "./GameBasic";
+import { ExBrick } from "./ExBrick";
+import { Brick } from "./Brick";
 
 /**
  * 砖块信息类
@@ -147,8 +149,10 @@ export class GameBoard {
 
                     if (!this.isExBrick(bsa.type)) {
                         //从这里插入生命值设定
-                        temp.getComponent("Brick").init(bsa.life, ORIGIN_COLOR, bsa.type);
+                        temp.getComponent(Brick).init(bsa.life, ORIGIN_COLOR, bsa.type);
                         temp.getComponent(cc.Sprite).spriteFrame = gameConfig.getBlockSpriteFrame(bsa.type, ORIGIN_COLOR);
+                    } else {
+                        temp.getComponent(ExBrick).init(bsa.type);
                     }
                     
                     temp.position = bsa.position;
@@ -252,6 +256,9 @@ export class GameBoard {
             case BRICK_TYPE.SQUARE_DISMISS_ROW:
             return true;
 
+            case BRICK_TYPE.SQUARE_DISMISS_COl:
+            return true;
+            
             default:
             return false;
         }
