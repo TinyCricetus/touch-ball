@@ -195,13 +195,12 @@ export class GameScene extends cc.Component {
                     } else {
                         i.active = false;
                     }
-
                 }
             }
         }
-        if (targetNode.getComponent(ExBrick).touchCount >= this.ballCount) {
-            targetNode.active = false;
-        }
+        // if (targetNode.getComponent(ExBrick).touchCount >= this.ballCount) {
+        //     targetNode.active = false;
+        // }
     }
 
     private isDismiss(type: BRICK_TYPE, posA: cc.Vec2, posB: cc.Vec2): boolean {
@@ -232,9 +231,9 @@ export class GameScene extends cc.Component {
             }
         }
 
-        for (let i of this.brickNodeArray) {
-            i.active = false;
-        }
+        // for (let i of this.brickNodeArray) {
+        //     i.active = false;
+        // }
         return true;
     }
 
