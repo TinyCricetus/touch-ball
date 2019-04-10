@@ -269,6 +269,10 @@ export class GameScene extends cc.Component {
      */
     private loadMap(gameLevel: number) {
         console.log("加载地图:" + gameLevel);
+        if (gameLevel > 2) {
+            this.gameOver.active = true;
+            return ;
+        }
         this.brickNodeArray = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, gameLevel);
         for (let i of this.brickNodeArray) {
             this.brickRootNode.addChild(i);
@@ -286,7 +290,7 @@ export class GameScene extends cc.Component {
     private onTouchEnd(event: cc.Event.EventTouch) {
         this.clearBall();
         this.clearState();
-        this.ballCountControl(3, null);
+        this.ballCountControl(3);
         let reflect: Reflect = this.getReflectPos(event);
         this.schedule(function () {
             this.sendBall(this.ballNodeRecord[this.index++], reflect);
@@ -322,10 +326,10 @@ export class GameScene extends cc.Component {
      * 
      * 操作3:当开始弹射时,取消小球计数显示
      * 
-     * 操作4:当第一个小球落地时，对齐传入节点坐标，计数归零并计数加一
+     * 操作4:当第一个小球落地时，计数归零并计数加一
      * 
      */
-    private ballCountControl(operator: number, node: cc.Node) {
+    private ballCountControl(operator: number) {
         switch (operator) {
             case 1:
                 if (this.ballLandCount >= 0) {
@@ -346,13 +350,13 @@ export class GameScene extends cc.Component {
                 break;
 
             case 4:
-                if (node != null) {
-                    this.ballCountDisplay.position = cc.v2(node.position.x, node.position.y + BRICK_SIZE / 2);
+                if (this.fristPosition != null) {
+                    this.ballCountDisplay.position = cc.v2(this.fristPosition.x, this.fristPosition.y + BRICK_SIZE / 3 * 2);
                     this.ballLandCount = 0;
-                    this.ballCountControl(2, null);
+                    this.ballCountControl(2);
                     this.ballCountDisplay.active = true;
                 } else {
-                    console.log("传入节点为空，无法附加！");
+                    console.log("第一节点坐标为空，无法显示！");
                 }
                 break;
         }
@@ -388,9 +392,9 @@ export class GameScene extends cc.Component {
             if (this.frist) {
                 this.fristPosition = cc.v2(other.node.position.x, -this.gameBoard.gameHeight / 2);
                 this.frist = false;
-                this.ballCountControl(4, other.node);
+                this.ballCountControl(4);
             } else {
-                this.ballCountControl(2, null);
+                this.ballCountControl(2);
             }
 
             /**
