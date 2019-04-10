@@ -70,6 +70,9 @@ export class BrickNodePool {
             case BRICK_TYPE.SQUARE_DISMISS_COl:
             return 6;
 
+            case BRICK_TYPE.BALL_ADD:
+            return 7;
+
             default:
             cc.log("砖块种类匹配出错!");
             return 0;//出错时默认返回0

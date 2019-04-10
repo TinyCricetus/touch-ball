@@ -6,6 +6,7 @@ import { GameConfig } from "./GameConfig";
 import { GameBasic } from "./GameBasic";
 import { ExBrick } from "./ExBrick";
 import { Brick } from "./Brick";
+import { AddBrick } from "./AddBrick";
 
 /**
  * 砖块信息类
@@ -90,18 +91,18 @@ export class GameBoard {
             for (let i: number = 0; i < sideArray.length; i++) {
                 if (this.isContain(sideArray[i])) {
                     //补充反射轨迹
-                    switch(i) {
+                    switch (i) {
                         case 0:
-                        return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
-                        
+                            return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
+
                         case 1:
-                        return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
-                        
+                            return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
+
                         case 2:
-                        return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
-    
+                            return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
+
                         default:
-                        break;
+                            break;
                     }
                 }
             }
@@ -109,18 +110,18 @@ export class GameBoard {
             for (let i: number = sideArray.length - 1; i >= 0; i--) {
                 if (this.isContain(sideArray[i])) {
                     //补充反射轨迹
-                    switch(i) {
+                    switch (i) {
                         case 0:
-                        return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
-                        
+                            return new Reflect(cc.v2(sideArray[i]), SIDE.LEFT);
+
                         case 1:
-                        return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
-                        
+                            return new Reflect(cc.v2(sideArray[i]), SIDE.RIGHT);
+
                         case 2:
-                        return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
-    
+                            return new Reflect(cc.v2(sideArray[i]), SIDE.TOP);
+
                         default:
-                        break;
+                            break;
                     }
                 }
             }
@@ -152,9 +153,9 @@ export class GameBoard {
                         temp.getComponent(Brick).init(bsa.life, ORIGIN_COLOR, bsa.type);
                         temp.getComponent(cc.Sprite).spriteFrame = gameConfig.getBlockSpriteFrame(bsa.type, ORIGIN_COLOR);
                     } else {
-                        temp.getComponent(ExBrick).init(bsa.type);
+                        this.configExBrick(temp, bsa.type);
                     }
-                    
+
                     temp.position = bsa.position;
                     if (this.isExBrick(bsa.type)) {
                         brickNodeArray.push(temp);
@@ -207,28 +208,28 @@ export class GameBoard {
         let reflectLength: number = 3;
         if (length < reflectLength) {
             //轨迹小于3时不产生反射
-            return ;
+            return;
         } else {
             let retArray: cc.Vec2[] = [];
             for (let i: number = 0; i < reflectLength; i++) {
                 retArray[i] = cc.v2(posArray[length - i - 1]);
             }
-            switch(reflectPos.reflectSide) {
+            switch (reflectPos.reflectSide) {
                 case SIDE.LEFT:
                 case SIDE.RIGHT:
-                for (let i: number = 0; i < reflectLength; i++) {
-                    retArray[i].y = reflectPos.position.y * 2 - retArray[i].y;
-                }
-                break;
+                    for (let i: number = 0; i < reflectLength; i++) {
+                        retArray[i].y = reflectPos.position.y * 2 - retArray[i].y;
+                    }
+                    break;
 
                 case SIDE.TOP:
-                for (let i: number = 0; i < reflectLength; i++) {
-                    retArray[i].x = reflectPos.position.x * 2 - retArray[i].x;
-                }
-                break;
+                    for (let i: number = 0; i < reflectLength; i++) {
+                        retArray[i].x = reflectPos.position.x * 2 - retArray[i].x;
+                    }
+                    break;
 
                 default:
-                break;
+                    break;
             }
             //console.log(retArray.length);
             for (let i of retArray) {
@@ -252,15 +253,18 @@ export class GameBoard {
      * 判断是否特效方块
      */
     public isExBrick(brickType: BRICK_TYPE): boolean {
-        switch(brickType) {
+        switch (brickType) {
             case BRICK_TYPE.SQUARE_DISMISS_ROW:
-            return true;
+                return true;
 
             case BRICK_TYPE.SQUARE_DISMISS_COl:
-            return true;
-            
+                return true;
+
+            case BRICK_TYPE.BALL_ADD:
+                return true;
+
             default:
-            return false;
+                return false;
         }
     }
 
@@ -277,6 +281,29 @@ export class GameBoard {
 
         //this.gameMap = new GameMap();
         //this.configMap();
+    }
+
+    /**
+     * 配置特效砖块
+     * @param node 
+     * @param brickType 
+     */
+    private configExBrick(node: cc.Node, brickType: BRICK_TYPE) {
+        switch (brickType) {
+            case BRICK_TYPE.SQUARE_DISMISS_COl:
+            case BRICK_TYPE.SQUARE_DISMISS_ROW:
+                node.getComponent(ExBrick).init(brickType);
+                break;
+
+            case BRICK_TYPE.BALL_ADD:
+                node.getComponent(AddBrick).init(brickType);
+                break;
+
+
+            default:
+                console.log("特效砖块匹配出错!");
+                break;
+        }
     }
 
     /**

@@ -5,6 +5,7 @@ import { BRICK_TYPE, BRICK_SIZE } from "./BrickData";
 import { GameBasic } from "./GameBasic";
 import { Brick } from "./Brick";
 import { ExBrick } from "./ExBrick";
+import { AddBrick } from "./AddBrick";
 
 
 const { ccclass, property } = cc._decorator;
@@ -41,6 +42,8 @@ export class GameScene extends cc.Component {
     timeInterval: number = 0;
     @property(cc.Integer)
     theForce: number = 0;
+    @property(cc.Integer)
+    levelLimit: number = 0;
 
     public brickNodePool: BrickNodePool = null;
     public lineBallNodePool: LineBallNodePool = null;
@@ -107,13 +110,17 @@ export class GameScene extends cc.Component {
 
         this.index = 0;
         this.frist = false;
+        //如果没有初始化或者初始化错误，默认为1关
+        this.levelLimit = this.levelLimit <= 0 ? 1 : this.levelLimit;
 
         //注册颜色变化事件
         GameBasic.getInstance().registerEvent("color", this.changeColor, this);
         //注册游戏结束事件
         GameBasic.getInstance().registerEvent("gameOver", this.gameOverScene, this);
         //注册横扫特效事件
-        GameBasic.getInstance().registerEvent("DismissRow", this.dismissRowCol, this);
+        GameBasic.getInstance().registerEvent("Dismiss", this.dismissRowCol, this);
+        //注册小球加一特效
+        GameBasic.getInstance().registerEvent("AddBall", this.brickAdd, this);
     }
 
     public onDestroy() {
@@ -154,6 +161,19 @@ export class GameScene extends cc.Component {
     }
 
     /**
+     * 用于砖块加一回调
+     */
+    private brickAdd(eventName: string, targetNode: cc.Node) {
+        //console.log("触发加一!");
+        this.ballCount++;
+        targetNode.active = false;
+        let temp: cc.Node = this.ballNodePool.getBallNode();
+        this.node.addChild(temp);//先激活active
+        temp.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, -this.theForce);
+        this.ballNodeRecord.push(temp);
+    }
+
+    /**
      * 横扫消除特效
      * @param eventName 
      * @param targetNode 
@@ -179,6 +199,9 @@ export class GameScene extends cc.Component {
                 }
             }
         }
+        if (targetNode.getComponent(ExBrick).touchCount >= this.ballCount) {
+            targetNode.active = false;
+        }
     }
 
     private isDismiss(type: BRICK_TYPE, posA: cc.Vec2, posB: cc.Vec2): boolean {
@@ -189,8 +212,6 @@ export class GameScene extends cc.Component {
                 } else {
                     return false;
                 }
-
-
 
             case BRICK_TYPE.SQUARE_DISMISS_COl:
                 if (Math.abs(posA.x - posB.x) <= 10) {
@@ -204,36 +225,15 @@ export class GameScene extends cc.Component {
         }
     }
 
-    /**
-     * 竖扫消除特效
-     */
-    private dismissCol(eventName: string, targetNode: cc.Node) {
-        //遍历所有砖块
-        for (let i of this.brickNodeArray) {
-            let iBrick: Brick = i.getComponent(Brick);
-            //将特效砖块取消遍历
-            if (iBrick == null) {
-                continue;
-            }
-            let brickType: BRICK_TYPE = iBrick.type;
-            if (!this.gameBoard.isExBrick(brickType)) {
-                if (Math.abs(targetNode.position.x - i.position.x) <= 10) {
-                    if (iBrick.lifeValue > 1) {
-                        iBrick.updateLifeValue(iBrick.lifeValue - 1);
-                    } else {
-                        i.active = false;
-                    }
-
-                }
-            }
-        }
-    }
-
     private ifNextLevel(): boolean {
         for (let i of this.brickNodeArray) {
             if (i.active == true && i.getComponent(Brick)) {
                 return false;
             }
+        }
+
+        for (let i of this.brickNodeArray) {
+            i.active = false;
         }
         return true;
     }
@@ -249,18 +249,25 @@ export class GameScene extends cc.Component {
 
     private clearMap() {
         for (let i of this.brickNodeArray) {
-            let iBrick: Brick = i.getComponent(Brick);
-            let type: BRICK_TYPE = null;
-            if (iBrick == null) {
-                type = i.getComponent(ExBrick).type;
-            } else {
-                type = iBrick.type;
-            }
-            this.brickNodePool.putBrickNode(i, type);
+            this.clearBrick(i);
         }
         while (this.brickNodeArray.length > 0) {
             this.brickNodeArray.shift();
         }
+    }
+
+    private clearBrick(node: cc.Node) {
+        let type: BRICK_TYPE = null;
+        let com: any = null;
+        let componentName: string[] = ["Brick", "ExBrick", "AddBrick"];
+        for (let i of componentName) {
+            com = node.getComponent(i);
+            if (com != null) {
+                break;
+            }
+        }
+        type = com.type;
+        this.brickNodePool.putBrickNode(node, type);
     }
 
     /**
@@ -269,9 +276,9 @@ export class GameScene extends cc.Component {
      */
     private loadMap(gameLevel: number) {
         console.log("加载地图:" + gameLevel);
-        if (gameLevel > 2) {
+        if (gameLevel > this.levelLimit) {
             this.gameOver.active = true;
-            return ;
+            return;
         }
         this.brickNodeArray = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, gameLevel);
         for (let i of this.brickNodeArray) {
@@ -362,16 +369,6 @@ export class GameScene extends cc.Component {
         }
     }
 
-    private removeParent(node: cc.Node) {
-        let parent: cc.Node = node.parent;
-        if (parent == null) {
-            return;
-        } else {
-            parent.removeChild(node);
-            return;
-        }
-    }
-
     /**
      * 获取反射点
      **/
@@ -409,11 +406,12 @@ export class GameScene extends cc.Component {
 
             this.landCount++;
             if (this.landCount == this.ballCount) {
-                //开始校准坐标，全体下移一格
-                this.gameBoard.moveDown(this.brickNodeArray);
                 //检测下一关条件是否满足
                 if (this.ifNextLevel()) {
                     this.nextLevel();
+                } else {
+                    //开始校准坐标，全体下移一格
+                    this.gameBoard.moveDown(this.brickNodeArray);
                 }
                 //关闭触控禁止
                 this.touchContorl.active = false;
@@ -543,7 +541,7 @@ export class GameScene extends cc.Component {
         if (!this.ballNodeRecord) {
             this.ballNodeRecord = [];
         }
-        //先把第一个球也就是定位球加入
+        //先把定位球加入
         this.ballNodeRecord.push(this.ball);
         for (let i: number = 1; i < this.ballCount; i++) {
             let temp: cc.Node = this.ballNodePool.getBallNode();
