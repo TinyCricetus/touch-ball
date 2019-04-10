@@ -18,6 +18,8 @@ export class GameScene extends cc.Component {
     @property(cc.Node)
     ball: cc.Node = null;
     @property(cc.Node)
+    ballCountDisplay: cc.Node = null;
+    @property(cc.Node)
     reflectBall: cc.Node = null;
     @property(cc.Node)
     gameOver: cc.Node = null;
@@ -52,11 +54,12 @@ export class GameScene extends cc.Component {
     private lineBallNodeRecord: cc.Node[] = null;
     private ballNodeRecord: cc.Node[] = null;
     private index: number = 0;
-    private landCount: number = 0;
+    private landCount: number = 0;//用于小球落地计数
     private frist: boolean = false;
     private fristPosition: cc.Vec2 = null;
     private backBallRecord: any[] = null;
     private currentLevel: number = 0;
+    private ballLandCount: number = 0;//用于小球个数显示
 
     public onLoad() {
         //开启物理引擎
@@ -82,6 +85,8 @@ export class GameScene extends cc.Component {
         this.ballNodeRecord = [];
         //用于记录应该回归集结点的球
         this.backBallRecord = [];
+        //初始化弹球计数显示
+        this.initBallCount();
 
         //获取砖块挂载的根节点，便于统一管理砖块
         this.brickRootNode = this.node.children[0];
@@ -177,25 +182,25 @@ export class GameScene extends cc.Component {
     }
 
     private isDismiss(type: BRICK_TYPE, posA: cc.Vec2, posB: cc.Vec2): boolean {
-        switch(type) {
+        switch (type) {
             case BRICK_TYPE.SQUARE_DISMISS_ROW:
-            if (Math.abs(posA.y - posB.y) <= 10) {
-                return true;
-            } else {
-                return false;
-            }
-            
+                if (Math.abs(posA.y - posB.y) <= 10) {
+                    return true;
+                } else {
+                    return false;
+                }
+
 
 
             case BRICK_TYPE.SQUARE_DISMISS_COl:
-            if (Math.abs(posA.x - posB.x) <= 10) {
-                return true;
-            } else {
-                return false;
-            }
+                if (Math.abs(posA.x - posB.x) <= 10) {
+                    return true;
+                } else {
+                    return false;
+                }
 
             default:
-            return false;
+                return false;
         }
     }
 
@@ -281,6 +286,7 @@ export class GameScene extends cc.Component {
     private onTouchEnd(event: cc.Event.EventTouch) {
         this.clearBall();
         this.clearState();
+        this.ballCountControl(3, null);
         let reflect: Reflect = this.getReflectPos(event);
         this.schedule(function () {
             this.sendBall(this.ballNodeRecord[this.index++], reflect);
@@ -295,6 +301,71 @@ export class GameScene extends cc.Component {
 
     private onTouchCancel(event: cc.Event.EventTouch) {
         this.clearBall();
+    }
+
+    private initBallCount() {
+        this.ballCountDisplay.getComponent(cc.Label).string = `${this.ballCount}`;
+        //console.log(this.ballCountDisplay.parent);
+        this.ballCountDisplay.active = true;
+        this.ballCountDisplay.position = cc.v2(this.ball.position.x, this.ball.position.y + BRICK_SIZE / 2);
+        this.ballLandCount = this.ballCount;
+    }
+
+    /**
+     * 小球个数显示节点操作
+     * @param operator 操作指令
+     * @param tempNode 附加节点(操作1、2、3可不传)
+     * 
+     * 操作1:计数减少1
+     * 
+     * 操作2:计数增加1
+     * 
+     * 操作3:当开始弹射时,取消小球计数显示
+     * 
+     * 操作4:当第一个小球落地时，对齐传入节点坐标，计数归零并计数加一
+     * 
+     */
+    private ballCountControl(operator: number, node: cc.Node) {
+        switch (operator) {
+            case 1:
+                if (this.ballLandCount >= 0) {
+                    this.ballLandCount--;
+                    this.ballCountDisplay.getComponent(cc.Label).string = `${this.ballLandCount}`;
+                } else {
+                    console.log("操作1计数减少出现错误!");
+                }
+                break;
+
+            case 2:
+                this.ballLandCount++;
+                this.ballCountDisplay.getComponent(cc.Label).string = `${this.ballLandCount}`;
+                break;
+
+            case 3:
+                this.ballCountDisplay.active = false;
+                break;
+
+            case 4:
+                if (node != null) {
+                    this.ballCountDisplay.position = cc.v2(node.position.x, node.position.y + BRICK_SIZE / 2);
+                    this.ballLandCount = 0;
+                    this.ballCountControl(2, null);
+                    this.ballCountDisplay.active = true;
+                } else {
+                    console.log("传入节点为空，无法附加！");
+                }
+                break;
+        }
+    }
+
+    private removeParent(node: cc.Node) {
+        let parent: cc.Node = node.parent;
+        if (parent == null) {
+            return;
+        } else {
+            parent.removeChild(node);
+            return;
+        }
     }
 
     /**
@@ -317,18 +388,21 @@ export class GameScene extends cc.Component {
             if (this.frist) {
                 this.fristPosition = cc.v2(other.node.position.x, -this.gameBoard.gameHeight / 2);
                 this.frist = false;
+                this.ballCountControl(4, other.node);
+            } else {
+                this.ballCountControl(2, null);
             }
-            if (other.tag != 1) {
-                /**
-                 * 往第一个球的位置运动
-                 * 由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行约束
-                 */
-                this.backBallRecord.push(other);
-                if (this.backBallRecord.length == 1) {
-                    //开始集结小球
-                    this.everyBallMoveToCenterPoint();
-                }
+
+            /**
+             * 往第一个球的位置运动
+             * 由于动作冲突，因此应该先存储应该回归的小球，用回调对小球的回归行动进行控制约束
+             */
+            this.backBallRecord.push(other);
+            if (this.backBallRecord.length == 1) {
+                //开始集结小球
+                this.everyBallMoveToCenterPoint();
             }
+
             this.landCount++;
             if (this.landCount == this.ballCount) {
                 //开始校准坐标，全体下移一格
