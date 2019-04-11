@@ -1272,8 +1272,8 @@
       "__id__": 38
     },
     "ballCount": 22,
-    "timeInterval": 0.1,
-    "theForce": 800,
+    "timeInterval": 0.05,
+    "theForce": 600,
     "levelLimit": 3
   },
   {
