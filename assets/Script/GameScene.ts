@@ -3,9 +3,9 @@ import { GameBoard, Reflect } from "./GameBoard";
 import { GameConfig } from "./GameConfig";
 import { BRICK_TYPE, BRICK_SIZE } from "./BrickData";
 import { GameBasic } from "./GameBasic";
-import { Brick } from "./Brick";
-import { ExBrick } from "./ExBrick";
-import { AddBrick } from "./AddBrick";
+import { Brick } from "./Brick/Brick";
+import { ExBrick } from "./Brick/ExBrick";
+import { AddBrick } from "./Brick/AddBrick";
 
 
 const { ccclass, property } = cc._decorator;
@@ -164,8 +164,8 @@ export class GameScene extends cc.Component {
      * 用于砖块加一回调
      */
     private brickAdd(eventName: string, targetNode: cc.Node) {
-        //console.log("触发加一!");
         this.ballCount++;
+        console.log("球数量:" + this.ballCount);
         targetNode.active = false;
         let temp: cc.Node = this.ballNodePool.getBallNode();
         this.node.addChild(temp);//先激活active
@@ -198,9 +198,9 @@ export class GameScene extends cc.Component {
                 }
             }
         }
-        // if (targetNode.getComponent(ExBrick).touchCount >= this.ballCount) {
-        //     targetNode.active = false;
-        // }
+        if (targetNode.getComponent(ExBrick).touchCount >= this.ballCount) {
+            targetNode.getComponent(ExBrick).isDismiss = true;
+        }
     }
 
     private isDismiss(type: BRICK_TYPE, posA: cc.Vec2, posB: cc.Vec2): boolean {
@@ -230,10 +230,6 @@ export class GameScene extends cc.Component {
                 return false;
             }
         }
-
-        // for (let i of this.brickNodeArray) {
-        //     i.active = false;
-        // }
         return true;
     }
 
@@ -402,20 +398,7 @@ export class GameScene extends cc.Component {
                 //开始集结小球
                 this.everyBallMoveToCenterPoint();
             }
-
             this.landCount++;
-            if (this.landCount == this.ballCount) {
-                //检测下一关条件是否满足
-                if (this.ifNextLevel()) {
-                    this.nextLevel();
-                } else {
-                    //开始校准坐标，全体下移一格
-                    this.gameBoard.moveDown(this.brickNodeArray);
-                }
-                //关闭触控禁止
-                this.touchContorl.active = false;
-            }
-            //console.log("begin:" + this.ballNodeRecord[0].position);
         }
     }
 
@@ -424,12 +407,32 @@ export class GameScene extends cc.Component {
      */
     private everyBallMoveToCenterPoint() {
         if (this.backBallRecord.length <= 0) {
+            this.judgeNextLevelAndMoveDown();
             return;
         } else {
             let action: cc.FiniteTimeAction = cc.moveTo(0.3, this.fristPosition).easing(cc.easeCircleActionInOut());
             let act: cc.ActionInterval = cc.sequence(action, cc.callFunc(this.everyBallMoveToCenterPoint, this));
             let temp: any = this.backBallRecord.shift();
             temp.node.runAction(act);
+        }
+    }
+
+    /**
+     * 判断是否下一关或者是否下移
+     */
+    private judgeNextLevelAndMoveDown() {
+        if (this.landCount == this.ballCount) {
+            this.landCount = 0;
+            //检测下一关条件是否满足
+            if (this.ifNextLevel()) {
+                this.nextLevel();
+            } else {
+                //开始校准坐标，全体下移一格
+                console.log("正在全体下移!");
+                this.gameBoard.moveDown(this.brickNodeArray);
+            }
+            //关闭触控禁止
+            this.touchContorl.active = false;
         }
     }
 
