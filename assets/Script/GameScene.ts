@@ -165,11 +165,11 @@ export class GameScene extends cc.Component {
      */
     private brickAdd(eventName: string, targetNode: cc.Node) {
         this.ballCount++;
-        console.log("球数量:" + this.ballCount);
+        //console.log("球数量:" + this.ballCount);
         targetNode.active = false;
         let temp: cc.Node = this.ballNodePool.getBallNode();
         this.node.addChild(temp);//先激活active
-        temp.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, -this.theForce);
+        temp.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, -this.theForce * 2);
         this.ballNodeRecord.push(temp);
     }
 

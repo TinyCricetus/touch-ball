@@ -1271,7 +1271,7 @@
     "touchContorl": {
       "__id__": 38
     },
-    "ballCount": 22,
+    "ballCount": 30,
     "timeInterval": 0.05,
     "theForce": 600,
     "levelLimit": 3
