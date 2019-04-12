@@ -63,6 +63,8 @@ export class GameScene extends cc.Component {
     private backBallRecord: any[] = null;
     private currentLevel: number = 0;
     private ballLandCount: number = 0;//用于小球个数显示
+    private ballAddCount: number = 0;//用于统计加一砖块的数量，避免碰撞发生多次增加弹射球数量
+    private ballInitCount: number = 0;//记录关卡当前弹射球数量
 
     public onLoad() {
         //开启物理引擎
@@ -164,22 +166,27 @@ export class GameScene extends cc.Component {
      * 用于砖块加一回调
      */
     private brickAdd(eventName: string, targetNode: cc.Node) {
+        targetNode.active = false;
+        if (this.ballCount + 1 > this.ballInitCount + this.ballAddCount) {
+            //如果小球已经完成增加总量，直接返回
+            return ;
+        }
         this.ballCount++;
         //console.log("球数量:" + this.ballCount);
-        targetNode.active = false;
         let temp: cc.Node = this.ballNodePool.getBallNode();
         this.node.addChild(temp);//先激活active
-        temp.getComponent(cc.RigidBody).linearVelocity = cc.v2(0, -this.theForce * 2);
+        temp.position = targetNode.position;
+        temp.getComponent(cc.RigidBody).linearVelocity = cc.v2(-this.theForce * 2, -this.theForce * 2);
         this.ballNodeRecord.push(temp);
     }
 
     /**
-     * 横扫消除特效
+     * 横竖消除特效
      * @param eventName 
      * @param targetNode 
      */
     private dismissRowCol(eventName: string, targetNode: cc.Node) {
-        //遍历所有砖块
+        //获取消除类型
         let judgeType: BRICK_TYPE = targetNode.getComponent(ExBrick).type;
         for (let i of this.brickNodeArray) {
             let iBrick: Brick = i.getComponent(Brick);
@@ -275,8 +282,13 @@ export class GameScene extends cc.Component {
             this.gameOver.active = true;
             return;
         }
+        this.ballAddCount = 0;
+        this.ballInitCount = this.ballCount;
         this.brickNodeArray = this.gameBoard.getBrickNodeArray(this.gameConfig, this.brickNodePool, gameLevel);
         for (let i of this.brickNodeArray) {
+            if (i.getComponent(AddBrick) != null) {
+                this.ballAddCount++;
+            }
             this.brickRootNode.addChild(i);
         }
     }
