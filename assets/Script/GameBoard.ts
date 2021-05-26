@@ -139,7 +139,6 @@ export class GameBoard {
 
         //先配置地图
         this.configMap(gameConfig, gemaLevel);
-
         let brickNodeArray: cc.Node[] = [];
         for (let i = 0; i < this.brickStateArray.length; i++) {
             for (let j = 0; j < this.brickStateArray[i].length; j++) {

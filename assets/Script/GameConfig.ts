@@ -76,13 +76,14 @@ export class GameConfig extends cc.Component {
         /**
          * 加载地图
          */
-        cc.loader.loadRes("maps/map.json", function (err: Error, mapFile: Object) {
+        cc.loader.loadRes("maps/map", function (err: Error, mapFile: any) {
             //地图数据默认存储在brickArray数组中
-            let name: string[] = Object.keys(mapFile);
+            const configJson = mapFile.json
+            const name: string[] = Object.keys(configJson);
             for (let n of name) {
                 //let brickObjectArray: object[] = mapFile["brickArray"];
                 let gameMap: BrickInf[][] = [];
-                for (let i of mapFile[n]) {
+                for (let i of configJson[n]) {
                     for (let j: number = 0; j < MAP_HEIGHT; j++) {
                         if (!gameMap[j]) gameMap[j] = [];
                         if (i.row != j) {

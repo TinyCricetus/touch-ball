@@ -306,9 +306,9 @@ export class GameScene extends cc.Component {
         this.clearState();
         this.ballCountControl(3);
         let reflect: Reflect = this.getReflectPos(event);
-        this.schedule(function () {
+        this.schedule(() => {
             this.sendBall(this.ballNodeRecord[this.index++], reflect);
-        }.bind(this), this.timeInterval, this.ballNodeRecord.length - 1, 0);
+        }, this.timeInterval, this.ballNodeRecord.length - 1, 0);
     }
 
     private clearState() {
